@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-parse-changelog = { version = "0.6", default-features = false }
+clap = { version = "4.5.29", features = ["derive"] }
+parse-changelog = { version = "0.6.12", default-features = false }
