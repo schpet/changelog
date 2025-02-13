@@ -62,7 +62,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "changelogger"
+name = "changelog"
 version = "0.1.0"
 dependencies = [
  "clap",
