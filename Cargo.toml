@@ -5,4 +5,6 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.29", features = ["derive"] }
+conventional_commits = "0.1.1"
 parse-changelog = { version = "0.6.12", default-features = false }
+semver = "1.0.25"
