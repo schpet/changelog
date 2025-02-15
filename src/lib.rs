@@ -651,7 +651,12 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
             if !output.ends_with("\n\n") {
                 output.push_str("\n");
             }
-            output.push_str(&format!("## {}\n\n", release.title));
+            let title = if git_range_url.is_some() {
+                release.title.to_string()
+            } else {
+                release.title.replace("[", "").replace("]", "")
+            };
+            output.push_str(&format!("## {}\n\n", title));
             let mut filtered_sections = Vec::new();
             let mut current_section_header = "";
             let mut current_section_lines = Vec::new();
