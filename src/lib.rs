@@ -8,7 +8,7 @@ use git2::Repository;
 use parse_changelog::{Parser, Release};
 use indexmap::IndexMap;
 use chrono::Local;
-use comrak::{markdown_to_html, ComrakOptions};
+use comrak::{ComrakOptions, format_commonmark};
 
 pub struct Changelog {
     path: Box<Path>,
@@ -955,7 +955,7 @@ Custom Header Line 2
         assert!(markdown.contains("Custom Header Line 1"));
         assert!(markdown.contains("Custom Header Line 2"));
     }
-    
+
     #[test]
     fn test_add_entry_creates_missing_section() {
         let temp_dir = TempDir::new().unwrap();
