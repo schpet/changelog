@@ -33,10 +33,10 @@ $ changelog add "fixed login bug" --type fixed --version 1.0.1
 release the unreleased section to a new version:
 
 ```
-$ changelog release --version 1.0.0
+$ changelog release 1.0.0
 Released version 1.0.0
 
-$ changelog release --version 1.0.0 --date 2025-01-01
+$ changelog release 1.0.0 --date 2025-01-01
 Released version 1.0.0
 
 # or automatically increment the version
