@@ -700,13 +700,11 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
             
             // Add links for each version
             for (i, version) in version_links.iter().enumerate() {
-                let (prev_ver, next_ver) = if version == "Unreleased" {
-                    ("HEAD", version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string()))
+                let next_ver = version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string());
+                let prev_ver = if version == "Unreleased" {
+                    "HEAD".to_string()
                 } else {
-                    (
-                        format!("v{}", version),
-                        version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string())
-                    )
+                    format!("v{}", version)
                 };
                 
                 let range = format!("{}...{}", next_ver, prev_ver);
