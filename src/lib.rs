@@ -703,13 +703,10 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
                 let (prev_ver, next_ver) = if version == "Unreleased" {
                     ("HEAD", version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string()))
                 } else {
-                    {
-                        let ver_string = format!("v{}", version);
-                        (
-                            ver_string.as_str(),
-                            version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string())
-                        )
-                    }
+                    (
+                        format!("v{}", version),
+                        version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string())
+                    )
                 };
                 
                 let range = format!("{}...{}", next_ver, prev_ver);
