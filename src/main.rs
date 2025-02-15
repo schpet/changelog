@@ -6,6 +6,10 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
+    #[arg(long)]
+    git_range_url: Option<String>,
 }
 
 
@@ -68,9 +72,10 @@ enum VersionCommands {
 fn main() {
     let cli = Cli::parse();
 
+    let changelog = Changelog::new(cli.git_range_url);
     match &cli.command {
         Commands::Add { description, r#type, version } => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             if let Err(e) = changelog.add(description, r#type, version.as_deref(), true) {
                 eprintln!("Error adding changelog entry: {}", e);
                 std::process::exit(1);

@@ -12,6 +12,7 @@ use comrak::{ComrakOptions, format_commonmark};
 
 pub struct Changelog {
     path: Box<Path>,
+    git_range_url: Option<String>,
 }
 
 const EDITOR_TEMPLATE: &str = r#"{commits}
@@ -78,9 +79,10 @@ impl Changelog {
         }
         Err(io::Error::new(ErrorKind::NotFound, "No editor found"))
     }
-    pub fn new() -> Self {
+    pub fn new(git_range_url: Option<String>) -> Self {
         Changelog {
-            path: Path::new("CHANGELOG.md").into()
+            path: Path::new("CHANGELOG.md").into(),
+            git_range_url,
         }
     }
 
@@ -213,7 +215,7 @@ impl Changelog {
         let parsed = parser.parse(&content)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        fs::write(&self.path, changelog_to_markdown(&parsed, &content))?;
+        fs::write(&self.path, changelog_to_markdown(&parsed, &content, self.git_range_url.as_deref()))?;
         println!("Formatted CHANGELOG.md");
         Ok(())
     }
@@ -313,7 +315,7 @@ impl Changelog {
         for (k, v) in changelog.into_iter() {
             new_changelog.insert(k, v);
         }
-        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content))?;
+        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content, self.git_range_url.as_deref()))?;
         println!("Released version {}", version_str);
         Ok(())
     }
@@ -631,9 +633,10 @@ impl Changelog {
     }
 }
 
-fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str) -> String {
+fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, git_range_url: Option<&str>) -> String {
     let header = extract_header(original).unwrap_or_else(|| "# Changelog\n\n".to_string());
     let mut output = header;
+    let mut version_links = Vec::new();
     output.push_str("\n");
     // Add version sections
     for (_version, release) in changelog {
@@ -681,6 +684,34 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str) ->
             if !filtered_sections.is_empty() {
                 output.push_str(&filtered_sections.join("\n"));
                 output.push_str("\n");
+            }
+            
+            // Extract version for link
+            if let Some(version) = release.title.split_whitespace().next() {
+                version_links.push(version.trim_matches(|c| c == '[' || c == ']').to_string());
+            }
+        }
+    }
+
+    // Add version links if git_range_url is provided
+    if let Some(url_template) = git_range_url {
+        if !version_links.is_empty() {
+            output.push_str("\n");
+            
+            // Add links for each version
+            for (i, version) in version_links.iter().enumerate() {
+                let (prev_ver, next_ver) = if version == "Unreleased" {
+                    ("HEAD", version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string()))
+                } else {
+                    (
+                        &format!("v{}", version),
+                        version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string())
+                    )
+                };
+                
+                let range = format!("{}...{}", next_ver, prev_ver);
+                let url = url_template.replace("<range>", &range);
+                output.push_str(&format!("[{}]: {}\n", version, url));
             }
         }
     }
@@ -748,7 +779,7 @@ All notable changes to this project will be documented in this file.
         let parser = Parser::new();
         let changelog = parser.parse(content).unwrap();
 
-        let markdown = changelog_to_markdown(&changelog, content);
+        let markdown = changelog_to_markdown(&changelog, content, None);
 
         // Check header
         assert!(markdown.contains("# Changelog"));
@@ -789,15 +820,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         // First format
         let first_parse = parser.parse(initial_content).unwrap();
-        let first_format = changelog_to_markdown(&first_parse, initial_content);
+        let first_format = changelog_to_markdown(&first_parse, initial_content, None);
 
         // Second format
         let second_parse = parser.parse(&first_format).unwrap();
-        let second_format = changelog_to_markdown(&second_parse, initial_content);
+        let second_format = changelog_to_markdown(&second_parse, initial_content, None);
 
         // Third format
         let third_parse = parser.parse(&second_format).unwrap();
-        let third_format = changelog_to_markdown(&third_parse, initial_content);
+        let third_format = changelog_to_markdown(&third_parse, initial_content, None);
 
         // All formats should be identical
         assert_eq!(first_format, second_format);
@@ -855,7 +886,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let parser = Parser::new();
         let changelog = parser.parse(input).unwrap();
-        let markdown = changelog_to_markdown(&changelog, input);
+        let markdown = changelog_to_markdown(&changelog, input, None);
 
         assert_eq!(markdown, expected);
     }
@@ -879,7 +910,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let parser = Parser::new();
         let changelog = parser.parse(input).unwrap();
-        let markdown = changelog_to_markdown(&changelog, input);
+        let markdown = changelog_to_markdown(&changelog, input, None);
 
         assert_eq!(markdown, expected);
     }
