@@ -713,13 +713,14 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
             }
         }
     }
-    // Format the markdown using comrak's format_commonmark formatter
-    let options = ComrakOptions::default();
-    let arena = comrak::Arena::new();
-    let root = comrak::parse_document(&arena, &output, &options);
-    let mut buf = Vec::new();
-    comrak::format_commonmark(root, &options, &mut buf).unwrap();
-    String::from_utf8(buf).unwrap()
+    // Temporarily disable comrak formatting
+    // let options = ComrakOptions::default();
+    // let arena = comrak::Arena::new();
+    // let root = comrak::parse_document(&arena, &output, &options);
+    // let mut buf = Vec::new();
+    // comrak::format_commonmark(root, &options, &mut buf).unwrap();
+    // String::from_utf8(buf).unwrap()
+    output
 }
 
 fn extract_header(original: &str) -> Option<String> {
