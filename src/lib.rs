@@ -8,7 +8,7 @@ use git2::Repository;
 use parse_changelog::{Parser, Release};
 use indexmap::IndexMap;
 use chrono::Local;
-use comrak::{markdown_to_html, ComrakOptions, Options};
+use comrak::{markdown_to_html, ComrakOptions};
 
 pub struct Changelog {
     path: Box<Path>,
@@ -685,9 +685,8 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str) ->
         }
     }
     // Format the markdown using comrak
-    let mut options = ComrakOptions::default();
-    options.render.format = comrak::format::Format::Commonmark;
-    markdown_to_html(&(output.trim_end().to_string() + "\n"), &options)
+    let options = ComrakOptions::default();
+    output.trim_end().to_string() + "\n"
 }
 
 fn extract_header(original: &str) -> Option<String> {
