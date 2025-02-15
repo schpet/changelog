@@ -51,10 +51,10 @@ interactively review git commits and add them to the changelog:
 
 ```
 $ changelog review
-? Select commits to include in changelog
-> ⬡ abc1234 add user authentication
-  ⬡ def5678 fix typo in docs
-  ⬡ ghi9012 update dependencies
+Select commits to include in changelog (press 'a' to select all):
+> [ ] abc1234 add user authentication
+  [ ] def5678 fix typo in docs
+  [ ] ghi9012 update dependencies
 ```
 
 ### version information
