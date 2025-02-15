@@ -684,9 +684,13 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str) ->
             }
         }
     }
-    // Format the markdown using comrak
+    // Format the markdown using comrak's format_commonmark formatter
     let options = ComrakOptions::default();
-    output.trim_end().to_string() + "\n"
+    let arena = comrak::Arena::new();
+    let root = comrak::parse_document(&arena, &output, &options);
+    let mut buf = Vec::new();
+    comrak::format_commonmark(root, &options, &mut buf).unwrap();
+    String::from_utf8(buf).unwrap()
 }
 
 fn extract_header(original: &str) -> Option<String> {
