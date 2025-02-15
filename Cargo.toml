@@ -5,6 +5,13 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.29", features = ["derive"] }
-conventional_commits = "0.1.1"
+git-conventional = "0.12.1"
 parse-changelog = { version = "0.6.12", default-features = false }
 semver = "1.0.25"
+indexmap = { version = "2.1.0", features = ["std"] }
+chrono = "0.4"
+git2 = "0.18.3"
+tempfile = "3.10.0"
+dialoguer = "0.11.0"
+colored = "2.0"
+similar = "2.6.0"
