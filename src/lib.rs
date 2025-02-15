@@ -8,7 +8,6 @@ use git2::Repository;
 use parse_changelog::{Parser, Release};
 use indexmap::IndexMap;
 use chrono::Local;
-use comrak::ComrakOptions;
 
 pub struct Changelog {
     path: Box<Path>,
@@ -786,17 +785,19 @@ All notable changes to this project will be documented in this file.
 
         let markdown = changelog_to_markdown(&changelog, content, None);
 
-        // Check header
-        assert!(markdown.contains("# Changelog"));
+        let expected = r#"# Changelog
+All notable changes to this project will be documented in this file.
 
-        // Check version sections
-        assert!(markdown.contains("## Unreleased"));
-        assert!(markdown.contains("## [1.0.0] - 2025-01-01"));
+## Unreleased
 
-        // Check release content
-        assert!(markdown.contains("### Added"));
-        assert!(markdown.contains("- First release"));
-        assert!(markdown.contains("- Cool new feature"));
+## 1.0.0 - 2025-01-01
+
+### Added
+
+- First release
+- Cool new feature
+"#;
+        assert_eq!(markdown, expected);
     }
 
     #[test]
