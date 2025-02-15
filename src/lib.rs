@@ -95,7 +95,7 @@ impl Changelog {
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Format and write the changelog
-        let content = changelog_to_markdown(&changelog);
+        let content = changelog_to_markdown(&changelog, "# Changelog\n\n");
         fs::write(&self.path, content)?;
         println!("Created CHANGELOG.md");
         Ok(())
@@ -187,7 +187,7 @@ impl Changelog {
         let old_content = fs::read_to_string(&self.path)?;
 
         // Generate new content
-        let new_content = changelog_to_markdown(&changelog);
+        let new_content = changelog_to_markdown(&changelog, &old_content);
 
         // Write new content
         fs::write(&self.path, &new_content)?;
@@ -212,7 +212,7 @@ impl Changelog {
         let parsed = parser.parse(&content)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        fs::write(&self.path, changelog_to_markdown(&parsed))?;
+        fs::write(&self.path, changelog_to_markdown(&parsed, &content))?;
         println!("Formatted CHANGELOG.md");
         Ok(())
     }
@@ -312,7 +312,7 @@ impl Changelog {
         for (k, v) in changelog.into_iter() {
             new_changelog.insert(k, v);
         }
-        fs::write(&self.path, changelog_to_markdown(&new_changelog))?;
+        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content))?;
         println!("Released version {}", version_str);
         Ok(())
     }
@@ -630,43 +630,24 @@ impl Changelog {
     }
 }
 
-fn changelog_to_markdown(changelog: &IndexMap<&str, Release>) -> String {
-    let mut output = String::new();
-
-    // Find and use the header from the first release's notes, if it exists
-    if let Some((_, first_release)) = changelog.iter().next() {
-        if first_release.notes.contains("# Changelog") {
-            output.push_str(&first_release.notes);
-            output.push_str("\n\n");
-            return output;
-        }
-    }
-
-    // Fallback header if none found
-    output.push_str("# Changelog\n\n");
-
+fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str) -> String {
+    let header = extract_header(original).unwrap_or_else(|| "# Changelog\n\n".to_string());
+    let mut output = header;
+    output.push_str("\n");
     // Add version sections
     for (_version, release) in changelog {
         if !release.notes.contains("# Changelog") {
             let mut lines: Vec<_> = release.notes.lines().collect();
-
-            // Remove version header and following empty lines if present
-            if let Some(pos) = lines.iter().position(|line|
-                line.trim().starts_with("## ")
-            ) {
+            if let Some(pos) = lines.iter().position(|line| line.trim().starts_with("## ")) {
                 lines.drain(pos..=pos);
                 while pos < lines.len() && lines[pos].trim().is_empty() {
                     lines.remove(pos);
                 }
             }
-
-            // Add version header with proper spacing
             if !output.ends_with("\n\n") {
                 output.push_str("\n");
             }
             output.push_str(&format!("## {}\n\n", release.title));
-
-            // Process release sections: only include sections with content.
             let mut filtered_sections = Vec::new();
             let mut current_section_header = "";
             let mut current_section_lines = Vec::new();
@@ -702,8 +683,11 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>) -> String {
             }
         }
     }
-
     output.trim_end().to_string() + "\n"
+}
+
+fn extract_header(original: &str) -> Option<String> {
+    original.split("\n##").next().map(|s| s.to_string())
 }
 
 #[cfg(test)]
@@ -757,7 +741,7 @@ All notable changes to this project will be documented in this file.
         let parser = Parser::new();
         let changelog = parser.parse(content).unwrap();
 
-        let markdown = changelog_to_markdown(&changelog);
+        let markdown = changelog_to_markdown(&changelog, content);
 
         // Check header
         assert!(markdown.contains("# Changelog"));
@@ -798,15 +782,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         // First format
         let first_parse = parser.parse(initial_content).unwrap();
-        let first_format = changelog_to_markdown(&first_parse);
+        let first_format = changelog_to_markdown(&first_parse, initial_content);
 
         // Second format
         let second_parse = parser.parse(&first_format).unwrap();
-        let second_format = changelog_to_markdown(&second_parse);
+        let second_format = changelog_to_markdown(&second_parse, initial_content);
 
         // Third format
         let third_parse = parser.parse(&second_format).unwrap();
-        let third_format = changelog_to_markdown(&third_parse);
+        let third_format = changelog_to_markdown(&third_parse, initial_content);
 
         // All formats should be identical
         assert_eq!(first_format, second_format);
@@ -864,7 +848,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let parser = Parser::new();
         let changelog = parser.parse(input).unwrap();
-        let markdown = changelog_to_markdown(&changelog);
+        let markdown = changelog_to_markdown(&changelog, input);
 
         assert_eq!(markdown, expected);
     }
@@ -888,7 +872,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let parser = Parser::new();
         let changelog = parser.parse(input).unwrap();
-        let markdown = changelog_to_markdown(&changelog);
+        let markdown = changelog_to_markdown(&changelog, input);
 
         assert_eq!(markdown, expected);
     }
@@ -951,6 +935,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         assert_eq!(content, expected);
     }
 
+    #[test]
+    fn test_preserve_original_header_custom() {
+        let input = r#"Custom Header Line 1
+Custom Header Line 2
+
+## [Unreleased]
+
+### Added
+
+- entry
+"#;
+        let parser = Parser::new();
+        let changelog = parser.parse(input).unwrap();
+        let markdown = changelog_to_markdown(&changelog, input);
+        assert!(markdown.contains("Custom Header Line 1"));
+        assert!(markdown.contains("Custom Header Line 2"));
+    }
+    
     #[test]
     fn test_add_entry_creates_missing_section() {
         let temp_dir = TempDir::new().unwrap();
