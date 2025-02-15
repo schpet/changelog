@@ -82,42 +82,42 @@ fn main() {
             }
         }
         Commands::Release { version_or_type, date } => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             if let Err(e) = changelog.release(version_or_type, date.as_deref()) {
                 eprintln!("Error releasing version: {}", e);
                 std::process::exit(1);
             }
         }
         Commands::Review { version } => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             if let Err(e) = changelog.review(version.as_deref()) {
                 eprintln!("Error reviewing changes: {}", e);
                 std::process::exit(1);
             }
         }
         Commands::Fmt => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             if let Err(e) = changelog.fmt() {
                 eprintln!("Error formatting changelog: {}", e);
                 std::process::exit(1);
             }
         }
         Commands::Init => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             if let Err(e) = changelog.init() {
                 eprintln!("Error initializing changelog: {}", e);
                 std::process::exit(1);
             }
         }
         Commands::Entry { version } => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             if let Err(e) = changelog.version_show(version) {
                 eprintln!("Error showing entry: {}", e);
                 std::process::exit(1);
             }
         }
         Commands::Version { command } => {
-            let changelog = Changelog::new();
+            let changelog = Changelog::new(None);
             match command {
                 VersionCommands::Latest => {
                     if let Err(e) = changelog.version_latest() {
