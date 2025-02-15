@@ -8,7 +8,7 @@ use git2::Repository;
 use parse_changelog::{Parser, Release};
 use indexmap::IndexMap;
 use chrono::Local;
-use comrak::{ComrakOptions, format_commonmark};
+use comrak::ComrakOptions;
 
 pub struct Changelog {
     path: Box<Path>,
@@ -98,7 +98,7 @@ impl Changelog {
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Format and write the changelog
-        let content = changelog_to_markdown(&changelog, "# Changelog\n\n");
+        let content = changelog_to_markdown(&changelog, "# Changelog\n\n", None);
         fs::write(&self.path, content)?;
         println!("Created CHANGELOG.md");
         Ok(())
@@ -190,7 +190,7 @@ impl Changelog {
         let old_content = fs::read_to_string(&self.path)?;
 
         // Generate new content
-        let new_content = changelog_to_markdown(&changelog, &old_content);
+        let new_content = changelog_to_markdown(&changelog, &old_content, None);
 
         // Write new content
         fs::write(&self.path, &new_content)?;
@@ -703,10 +703,10 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
                 let (prev_ver, next_ver) = if version == "Unreleased" {
                     ("HEAD", version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string()))
                 } else {
-                    (
-                        &format!("v{}", version),
-                        version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string())
-                    )
+                    {
+                        let ver = format!("v{}", version);
+                        (ver.as_str(), version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string()))
+                    }
                 };
                 
                 let range = format!("{}...{}", next_ver, prev_ver);
@@ -742,6 +742,7 @@ mod tests {
 
         let changelog = Changelog {
             path: temp_path.into(),
+            git_range_url: None,
         };
 
         // First initialization should succeed
@@ -986,7 +987,7 @@ Custom Header Line 2
 "#;
         let parser = Parser::new();
         let changelog = parser.parse(input).unwrap();
-        let markdown = changelog_to_markdown(&changelog, input);
+        let markdown = changelog_to_markdown(&changelog, input, None);
         assert!(markdown.contains("Custom Header Line 1"));
         assert!(markdown.contains("Custom Header Line 2"));
     }
