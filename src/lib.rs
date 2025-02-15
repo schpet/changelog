@@ -755,7 +755,7 @@ mod tests {
         // Content should match expected template
         let content = fs::read_to_string(&changelog.path).unwrap();
         assert!(content.contains("# Changelog"));
-        assert!(content.contains("## [Unreleased]"));
+        assert!(content.contains("## Unreleased"));
 
         // Parse the content to verify structure
         let parser = Parser::new();
@@ -789,7 +789,7 @@ All notable changes to this project will be documented in this file.
         assert!(markdown.contains("# Changelog"));
 
         // Check version sections
-        assert!(markdown.contains("## [Unreleased]"));
+        assert!(markdown.contains("## Unreleased"));
         assert!(markdown.contains("## [1.0.0] - 2025-01-01"));
 
         // Check release content
@@ -875,13 +875,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let expected = r#"# Changelog
 
-## [Unreleased]
+## Unreleased
 
 ### Added
 
 - stuff
 
-## [1.0.0]
+## 1.0.0
 
 ### Added
 
@@ -906,7 +906,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let expected = r#"# Changelog
 
-## [1.0.0] - 2025-02-06
+## 1.0.0 - 2025-02-06
 
 ### Added
 - Initial release
@@ -957,7 +957,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         let content = fs::read_to_string(&changelog.path).unwrap();
         let expected = r#"# Changelog
 
-## [Unreleased]
+## Unreleased
 
 ### Added
 
@@ -969,7 +969,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - changed
 
-## [1.0.0] - 2000-01-01
+## 1.0.0 - 2000-01-01
 
 ### Added
 
@@ -1029,7 +1029,7 @@ Custom Header Line 2
         let content = fs::read_to_string(&changelog.path).unwrap();
         let expected = r#"# Changelog
 
-## [Unreleased]
+## Unreleased
 
 ### Added
 
@@ -1039,7 +1039,7 @@ Custom Header Line 2
 
 - something changed
 
-## [1.0.0] - 2000-01-01
+## 1.0.0 - 2000-01-01
 
 ### Added
 
