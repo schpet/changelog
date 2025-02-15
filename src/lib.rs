@@ -980,6 +980,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     }
 
     #[test]
+    fn test_changelog_format_with_git_range_url() {
+        let input = r#"# Changelog
+
+## [0.6.11] - 2025-01-19
+
+### CLI
+
+- Accept non-UTF-8 changelog path.
+- Remove dependency on `anyhow` (previously used in CLI (`default` feature)).
+- Diagnostic improvements.
+
+## [0.6.10] - 2025-01-18
+
+### Added
+- Initial release"#;
+
+        let expected = r#"# Changelog
+
+## [0.6.11] - 2025-01-19
+
+### CLI
+
+- Accept non-UTF-8 changelog path.
+- Remove dependency on `anyhow` (previously used in CLI (`default` feature)).
+- Diagnostic improvements.
+
+## [0.6.10] - 2025-01-18
+
+### Added
+- Initial release
+
+[0.6.11]: https://github.com/taiki-e/parse-changelog/compare/v0.6.10...v0.6.11
+[0.6.10]: https://github.com/taiki-e/parse-changelog/compare/HEAD...v0.6.10
+"#;
+
+        let parser = Parser::new();
+        let changelog = parser.parse(input).unwrap();
+        let markdown = changelog_to_markdown(&changelog, input, Some("https://github.com/taiki-e/parse-changelog/compare/<range>"));
+
+        assert_eq!(markdown, expected);
+    }
+
+    #[test]
     fn test_preserve_original_header_custom() {
         let input = r#"Custom Header Line 1
 Custom Header Line 2
