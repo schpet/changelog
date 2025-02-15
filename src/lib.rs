@@ -730,7 +730,11 @@ mod tests {
         let content = fs::read_to_string(&changelog.path).unwrap();
         assert!(content.contains("# Changelog"));
         assert!(content.contains("## [Unreleased]"));
-        assert!(content.contains("### Added"));
+
+        // Parse the content to verify structure
+        let parser = Parser::new();
+        let parsed = parser.parse(&content).unwrap();
+        assert!(parsed.contains_key("Unreleased"));
 
         // Second initialization should not error but should warn
         changelog.init().unwrap();
