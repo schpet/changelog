@@ -690,7 +690,7 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
                 output.push_str(&filtered_sections.join("\n"));
                 output.push_str("\n");
             }
-            
+
             // Extract version for link
             if let Some(version) = release.title.split_whitespace().next() {
                 version_links.push(version.trim_matches(|c| c == '[' || c == ']').to_string());
@@ -702,7 +702,7 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
     if let Some(url_template) = git_range_url {
         if !version_links.is_empty() {
             output.push_str("\n");
-            
+
             // Add links for each version
             for (i, version) in version_links.iter().enumerate() {
                 let next_ver = version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string());
@@ -711,20 +711,21 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
                 } else {
                     format!("v{}", version)
                 };
-                
+
                 let range = format!("{}...{}", next_ver, prev_ver);
                 let url = url_template.replace("<range>", &range);
                 output.push_str(&format!("[{}]: {}\n", version, url));
             }
         }
     }
-    // Format the markdown using comrak's format_commonmark formatter
-    let options = ComrakOptions::default();
-    let arena = comrak::Arena::new();
-    let root = comrak::parse_document(&arena, &output, &options);
-    let mut buf = Vec::new();
-    comrak::format_commonmark(root, &options, &mut buf).unwrap();
-    String::from_utf8(buf).unwrap()
+    return output
+    // // Format the markdown using comrak's format_commonmark formatter
+    // let options = ComrakOptions::default();
+    // let arena = comrak::Arena::new();
+    // let root = comrak::parse_document(&arena, &output, &options);
+    // let mut buf = Vec::new();
+    // comrak::format_commonmark(root, &options, &mut buf).unwrap();
+    // String::from_utf8(buf).unwrap()
 }
 
 fn extract_header(original: &str) -> Option<String> {
