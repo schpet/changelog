@@ -722,14 +722,16 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
 
             // Add links for each version
             for (i, version) in version_links.iter().enumerate() {
-                let next_ver = version_links.get(i + 1).map(|v| format!("v{}", v)).unwrap_or_else(|| "HEAD".to_string());
-                let prev_ver = if version == "Unreleased" {
-                    "HEAD".to_string()
+                let range = if version == "Unreleased" {
+                    format!("v{}...HEAD", version_links[i + 1])
                 } else {
-                    format!("v{}", version)
+                    let prev_ver = if i + 1 < version_links.len() {
+                        format!("v{}", version_links[i + 1])
+                    } else {
+                        "HEAD".to_string()
+                    };
+                    format!("{}...v{}", prev_ver, version)
                 };
-
-                let range = format!("{}...{}", next_ver, prev_ver);
                 let url = url_template.replace("<range>", &range);
                 output.push_str(&format!("[{}]: {}\n", version, url));
             }
