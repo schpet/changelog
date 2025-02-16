@@ -819,24 +819,24 @@ mod tests {
         
         let input = r#"# Changelog
 
-## [Unreleased]
-
-### Added
-- New feature
-
-## [1.0.0] - 2025-01-01
-
-### Added
-- Initial release"#;
-
-        let expected = r#"# Changelog
-
 ## Unreleased
 
 ### Added
 - New feature
 
 ## 1.0.0 - 2025-01-01
+
+### Added
+- Initial release"#;
+
+        let expected = r#"# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.0.0] - 2025-01-01
 
 ### Added
 - Initial release
