@@ -859,7 +859,7 @@ fn changelog_to_markdown(
          }
          output = lines.join("\n");
     }
-    
+
     // Add version links if we can infer GitHub repo
     #[cfg(test)]
     let should_add_links = TEST_GITHUB_REPO.with(|cell| {
@@ -1314,7 +1314,6 @@ Custom Header Line 2
 
 ### Added
 - Initial release
-
 
 [Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
 [1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
