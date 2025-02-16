@@ -750,10 +750,23 @@ impl Changelog {
     }
 }
 
-fn remove_markdown_links(content: &str) -> String {
+fn remove_markdown_links(content: &str, versions: &[String]) -> String {
     content
         .lines()
-        .filter(|line| !line.trim_start().starts_with('[') || !line.contains("]: "))
+        .filter(|line| {
+            let line = line.trim_start();
+            if !line.starts_with('[') || !line.contains("]: ") {
+                return true;
+            }
+            // Extract the link text between [ and ]
+            if let Some(link_text) = line.split(']').next() {
+                let link_text = &link_text[1..]; // Remove the leading [
+                // Only remove if it matches a version
+                !versions.iter().any(|v| v == link_text)
+            } else {
+                true
+            }
+        })
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -774,7 +787,7 @@ fn changelog_to_markdown(
     for (_version, release) in changelog {
         if !release.notes.contains("# Changelog") {
             // Remove any existing markdown links from the notes
-            let cleaned_notes = remove_markdown_links(release.notes);
+            let cleaned_notes = remove_markdown_links(release.notes, &version_links);
             let mut lines: Vec<_> = cleaned_notes.lines().collect();
             if let Some(pos) = lines.iter().position(|line| line.trim().starts_with("## ")) {
                 lines.drain(pos..=pos);
@@ -1298,6 +1311,27 @@ Custom Header Line 2
 - something
 "#;
         assert_eq!(content, expected);
+    }
+
+    #[test]
+    fn test_remove_markdown_links() {
+        let content = r#"### Added
+- Feature A
+
+[0.1.0]: https://remove.me
+[example]: https://keep.me
+[1.0.0]: https://remove.me/too"#;
+
+        let versions = vec!["0.1.0".to_string(), "1.0.0".to_string()];
+        let result = remove_markdown_links(content, &versions);
+
+        assert_eq!(
+            result,
+            r#"### Added
+- Feature A
+
+[example]: https://keep.me"#
+        );
     }
 
     #[test]
