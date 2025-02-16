@@ -8,7 +8,6 @@ struct Cli {
     command: Commands,
 }
 
-
 #[derive(Subcommand)]
 enum Commands {
     /// Show version information
@@ -21,7 +20,7 @@ enum Commands {
         /// Version to show (latest, unreleased, or specific version)
         version: String,
     },
-    /// Add a new changelog entry 
+    /// Add a new changelog entry
     Add {
         /// Description of the change
         description: String,
@@ -69,14 +68,21 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Add { description, r#type, version } => {
+        Commands::Add {
+            description,
+            r#type,
+            version,
+        } => {
             let changelog = Changelog::new();
             if let Err(e) = changelog.add(description, r#type, version.as_deref(), true) {
                 eprintln!("Error adding changelog entry: {}", e);
                 std::process::exit(1);
             }
         }
-        Commands::Release { version_or_type, date } => {
+        Commands::Release {
+            version_or_type,
+            date,
+        } => {
             let changelog = Changelog::new();
             if let Err(e) = changelog.release(version_or_type, date.as_deref()) {
                 eprintln!("Error releasing version: {}", e);

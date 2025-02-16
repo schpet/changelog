@@ -1,13 +1,13 @@
-use std::fs;
-use std::path::Path;
-use std::io::{self, ErrorKind, Write};
-use colored::Colorize;
-use similar::{ChangeTag, TextDiff};
-use std::process::Command;
-use git2::Repository;
-use parse_changelog::{Parser, Release};
-use indexmap::IndexMap;
 use chrono::Local;
+use colored::Colorize;
+use git2::Repository;
+use indexmap::IndexMap;
+use parse_changelog::{Parser, Release};
+use similar::{ChangeTag, TextDiff};
+use std::fs;
+use std::io::{self, ErrorKind, Write};
+use std::path::Path;
+use std::process::Command;
 
 pub struct Changelog {
     path: Box<Path>,
@@ -53,7 +53,7 @@ fn infer_github_repo() -> Option<(String, String)> {
                 } else {
                     return None;
                 };
-                
+
                 if parts.len() >= 2 {
                     return Some((parts[0].to_string(), parts[1].to_string()));
                 }
@@ -77,21 +77,30 @@ const EDITOR_TEMPLATE: &str = r#"{commits}
 "#;
 
 impl Changelog {
-    fn show_diff(&self, version: Option<&str>, old_content: &str, new_content: &str) -> io::Result<()> {
+    fn show_diff(
+        &self,
+        version: Option<&str>,
+        old_content: &str,
+        new_content: &str,
+    ) -> io::Result<()> {
         // Get the old version content
         let parser = Parser::new();
-        let old_changelog = parser.parse(old_content)
+        let old_changelog = parser
+            .parse(old_content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
-        let new_changelog = parser.parse(new_content)
+        let new_changelog = parser
+            .parse(new_content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         let version_key = version.unwrap_or("Unreleased");
 
-        let old_version = old_changelog.get(version_key)
+        let old_version = old_changelog
+            .get(version_key)
             .map(|r| format!("## {}\n\n{}", r.title, r.notes.trim()))
             .unwrap_or_default();
 
-        let new_version = new_changelog.get(version_key)
+        let new_version = new_changelog
+            .get(version_key)
             .map(|r| format!("## {}\n\n{}", r.title, r.notes.trim()))
             .unwrap_or_default();
 
@@ -141,7 +150,8 @@ impl Changelog {
 
         // Parse empty changelog to get default structure
         let parser = Parser::new();
-        let changelog = parser.parse("# Changelog\n## [Unreleased]")
+        let changelog = parser
+            .parse("# Changelog\n## [Unreleased]")
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Format and write the changelog
@@ -151,7 +161,13 @@ impl Changelog {
         Ok(())
     }
 
-    pub fn add(&self, description: &str, type_: &str, version: Option<&str>, show_diff: bool) -> io::Result<()> {
+    pub fn add(
+        &self,
+        description: &str,
+        type_: &str,
+        version: Option<&str>,
+        show_diff: bool,
+    ) -> io::Result<()> {
         if !self.path.exists() {
             return Err(io::Error::new(
                 ErrorKind::NotFound,
@@ -161,7 +177,8 @@ impl Changelog {
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let mut changelog = parser.parse(&content)
+        let mut changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Determine which version to add to
@@ -259,7 +276,8 @@ impl Changelog {
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let parsed = parser.parse(&content)
+        let parsed = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         fs::write(&self.path, changelog_to_markdown(&parsed, &content, None))?;
@@ -275,10 +293,12 @@ impl Changelog {
             "major" => semver::Version::new(version.major + 1, 0, 0),
             "minor" => semver::Version::new(version.major, version.minor + 1, 0),
             "patch" => semver::Version::new(version.major, version.minor, version.patch + 1),
-            _ => return Err(io::Error::new(
-                ErrorKind::InvalidInput,
-                "Change type must be one of: major, minor, patch"
-            ))
+            _ => {
+                return Err(io::Error::new(
+                    ErrorKind::InvalidInput,
+                    "Change type must be one of: major, minor, patch",
+                ))
+            }
         };
 
         Ok(new_version.to_string())
@@ -293,14 +313,18 @@ impl Changelog {
         }
 
         // Determine the version to release
-        let version_str = if ["major", "minor", "patch"].contains(&version_or_type.to_lowercase().as_str()) {
+        let version_str = if ["major", "minor", "patch"]
+            .contains(&version_or_type.to_lowercase().as_str())
+        {
             // Get the latest version and increment it
             let content = fs::read_to_string(&self.path)?;
             let parser = Parser::new();
-            let changelog = parser.parse(&content)
+            let changelog = parser
+                .parse(&content)
                 .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
-            let latest_version = changelog.keys()
+            let latest_version = changelog
+                .keys()
                 .filter(|&k| *k != "Unreleased")
                 .next()
                 .and_then(|v| v.split_whitespace().next())
@@ -309,21 +333,28 @@ impl Changelog {
             self.get_next_version(latest_version, version_or_type)?
         } else {
             // Validate the provided version is a valid semver
-            semver::Version::parse(version_or_type)
-                .map_err(|_| io::Error::new(
+            semver::Version::parse(version_or_type).map_err(|_| {
+                io::Error::new(
                     ErrorKind::InvalidInput,
-                    "Version must be a valid semver or one of: major, minor, patch"
-                ))?;
+                    "Version must be a valid semver or one of: major, minor, patch",
+                )
+            })?;
             version_or_type.to_string()
         };
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let mut changelog = parser.parse(&content)
+        let mut changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
         let unreleased = match changelog.shift_remove("Unreleased") {
             Some(r) => r,
-            None => return Err(io::Error::new(ErrorKind::NotFound, "No unreleased section found")),
+            None => {
+                return Err(io::Error::new(
+                    ErrorKind::NotFound,
+                    "No unreleased section found",
+                ))
+            }
         };
         let new_title = if let Some(d) = date {
             format!("[{}] - {}", version_str, d)
@@ -349,10 +380,16 @@ impl Changelog {
 
 ### Security
 "#;
-            let mut dummy_changelog = Parser::new().parse(dummy)
+            let mut dummy_changelog = Parser::new()
+                .parse(dummy)
                 .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
-            let default_unreleased = dummy_changelog.shift_remove("Unreleased")
-                .ok_or_else(|| io::Error::new(ErrorKind::InvalidData, "Failed to parse default unreleased section"))?;
+            let default_unreleased =
+                dummy_changelog.shift_remove("Unreleased").ok_or_else(|| {
+                    io::Error::new(
+                        ErrorKind::InvalidData,
+                        "Failed to parse default unreleased section",
+                    )
+                })?;
             default_unreleased
         };
         let mut new_changelog = indexmap::IndexMap::new();
@@ -362,7 +399,10 @@ impl Changelog {
         for (k, v) in changelog.into_iter() {
             new_changelog.insert(k, v);
         }
-        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content, None))?;
+        fs::write(
+            &self.path,
+            changelog_to_markdown(&new_changelog, &content, None),
+        )?;
         println!("Released version {}", version_str);
         Ok(())
     }
@@ -377,21 +417,21 @@ impl Changelog {
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let changelog = parser.parse(&content)
+        let changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Find first non-Unreleased version
-        if let Some(version) = changelog.keys()
-            .filter(|&k| *k != "Unreleased")
-            .next() {
-                // Take first part (the version) before any date
-                let version_only = version.split_whitespace()
-                    .next()
-                    .unwrap_or("");
-                println!("{}", version_only);
-                Ok(())
+        if let Some(version) = changelog.keys().filter(|&k| *k != "Unreleased").next() {
+            // Take first part (the version) before any date
+            let version_only = version.split_whitespace().next().unwrap_or("");
+            println!("{}", version_only);
+            Ok(())
         } else {
-            Err(io::Error::new(ErrorKind::NotFound, "No released versions found"))
+            Err(io::Error::new(
+                ErrorKind::NotFound,
+                "No released versions found",
+            ))
         }
     }
 
@@ -405,17 +445,19 @@ impl Changelog {
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let changelog = parser.parse(&content)
+        let changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Handle special cases
         let version_to_show = match version.to_lowercase().as_str() {
-            "latest" => changelog.keys()
+            "latest" => changelog
+                .keys()
                 .filter(|&k| *k != "Unreleased")
                 .next()
                 .ok_or_else(|| io::Error::new(ErrorKind::NotFound, "No released versions found"))?,
             "unreleased" => "Unreleased",
-            _ => version
+            _ => version,
         };
 
         // Find the requested version
@@ -424,7 +466,10 @@ impl Changelog {
             println!("\n{}", release.notes.trim());
             Ok(())
         } else {
-            Err(io::Error::new(ErrorKind::NotFound, format!("Version {} not found", version)))
+            Err(io::Error::new(
+                ErrorKind::NotFound,
+                format!("Version {} not found", version),
+            ))
         }
     }
 
@@ -438,15 +483,14 @@ impl Changelog {
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let changelog = parser.parse(&content)
+        let changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Print all non-Unreleased versions
         for version in changelog.keys().filter(|&k| *k != "Unreleased") {
             // Take first part (the version) before any date
-            let version_only = version.split_whitespace()
-                .next()
-                .unwrap_or("");
+            let version_only = version.split_whitespace().next().unwrap_or("");
             println!("{}", version_only);
         }
         Ok(())
@@ -472,26 +516,29 @@ impl Changelog {
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let changelog = parser.parse(&content)
+        let changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Get the revision range
         let end = match version {
             Some(v) => format!("v{}", v),
-            None => "HEAD".to_string()
+            None => "HEAD".to_string(),
         };
 
         // Find the previous version
         let start = if let Some(version) = version {
             // For a specific version, find the version after it in changelog
-            changelog.keys()
+            changelog
+                .keys()
                 .filter(|&k| *k != "Unreleased")
                 .skip_while(|&v| *v != version)
-                .nth(1)  // Get the next version after the specified one
+                .nth(1) // Get the next version after the specified one
                 .map(|v| format!("v{}", v))
         } else {
             // For HEAD, use the most recent version from changelog
-            changelog.keys()
+            changelog
+                .keys()
                 .filter(|&k| *k != "Unreleased")
                 .next()
                 .map(|v| format!("v{}", v))
@@ -499,7 +546,7 @@ impl Changelog {
 
         match start {
             Some(start) => println!("{}..{}", start, end),
-            None => println!("{}", end)
+            None => println!("{}", end),
         };
 
         Ok(())
@@ -507,56 +554,68 @@ impl Changelog {
 
     pub fn review(&self, version: Option<&str>) -> io::Result<()> {
         // Find git repository
-        let repo = Repository::discover(".")
-            .map_err(|e| io::Error::new(ErrorKind::NotFound, format!("Git repository not found: {}", e)))?;
+        let repo = Repository::discover(".").map_err(|e| {
+            io::Error::new(
+                ErrorKind::NotFound,
+                format!("Git repository not found: {}", e),
+            )
+        })?;
 
         // Get the content to determine the revision range
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
-        let changelog = parser.parse(&content)
+        let changelog = parser
+            .parse(&content)
             .map_err(|e| io::Error::new(ErrorKind::InvalidData, e))?;
 
         // Get the revision range
         let end = match version {
             Some(v) => format!("v{}", v),
-            None => "HEAD".to_string()
+            None => "HEAD".to_string(),
         };
 
         // Find the previous version
         let start = if let Some(version) = version {
             // For a specific version, find the version after it in changelog
-            changelog.keys()
+            changelog
+                .keys()
                 .filter(|&k| *k != "Unreleased")
                 .skip_while(|&v| *v != version)
-                .nth(1)  // Get the next version after the specified one
+                .nth(1) // Get the next version after the specified one
                 .map(|v| format!("v{}", v))
         } else {
             // For HEAD, use the most recent version from changelog
-            changelog.keys()
+            changelog
+                .keys()
                 .filter(|&k| *k != "Unreleased")
                 .next()
                 .map(|v| format!("v{}", v))
         };
 
         // Get commits in the range
-        let mut revwalk = repo.revwalk()
+        let mut revwalk = repo
+            .revwalk()
             .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
 
         // Push the end commit
         if end == "HEAD" {
-            revwalk.push_head()
+            revwalk
+                .push_head()
                 .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
         } else {
-            let obj = repo.revparse_single(&end)
+            let obj = repo
+                .revparse_single(&end)
                 .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
-            revwalk.push(obj.id())
+            revwalk
+                .push(obj.id())
                 .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
         }
 
         // Hide the start commit if it exists
         if let Some(start) = start {
             if let Ok(obj) = repo.revparse_single(&start) {
-                revwalk.hide(obj.id())
+                revwalk
+                    .hide(obj.id())
                     .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
             }
         }
@@ -565,11 +624,18 @@ impl Changelog {
         let mut commit_list = Vec::new();
         for oid in revwalk {
             let oid = oid.map_err(|e| io::Error::new(ErrorKind::Other, e))?;
-            let commit = repo.find_commit(oid)
+            let commit = repo
+                .find_commit(oid)
                 .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
 
             let short_id = commit.id().to_string()[..7].to_string();
-            let message = commit.message().unwrap_or("").lines().next().unwrap_or("").trim();
+            let message = commit
+                .message()
+                .unwrap_or("")
+                .lines()
+                .next()
+                .unwrap_or("")
+                .trim();
             commit_list.push((short_id, message.to_string()));
         }
 
@@ -577,7 +643,9 @@ impl Changelog {
         let mut defaults = vec![false; commit_list.len()];
         for (idx, (_id, msg)) in commit_list.iter().enumerate() {
             if let Ok(conv_commit) = git_conventional::Commit::parse(msg) {
-                if conv_commit.type_().to_string() == "feat" || conv_commit.type_().to_string() == "fix" {
+                if conv_commit.type_().to_string() == "feat"
+                    || conv_commit.type_().to_string() == "fix"
+                {
                     defaults[idx] = true;
                 }
             }
@@ -586,7 +654,12 @@ impl Changelog {
         // Let user select commits
         let selections = dialoguer::MultiSelect::new()
             .with_prompt("Select commits to include in changelog (press 'a' to select all)")
-            .items(&commit_list.iter().map(|(id, msg)| format!("{} {}", id, msg)).collect::<Vec<_>>())
+            .items(
+                &commit_list
+                    .iter()
+                    .map(|(id, msg)| format!("{} {}", id, msg))
+                    .collect::<Vec<_>>(),
+            )
             .report(false)
             .defaults(&defaults)
             .interact()
@@ -601,25 +674,24 @@ impl Changelog {
         for &idx in selections.iter() {
             let (short_id, message) = &commit_list[idx];
             // Parse commit message to determine type
-            let (type_code, display_message) = if let Ok(conv_commit) = git_conventional::Commit::parse(message) {
-                let type_str = match conv_commit.type_().to_string().as_str() {
-                    "feat" => "added",
-                    "fix" => "fixed",
-                    _ => "changed"
+            let (type_code, display_message) =
+                if let Ok(conv_commit) = git_conventional::Commit::parse(message) {
+                    let type_str = match conv_commit.type_().to_string().as_str() {
+                        "feat" => "added",
+                        "fix" => "fixed",
+                        _ => "changed",
+                    };
+                    // Remove the type prefix from conventional commits
+                    let msg = conv_commit.description().to_string();
+                    (type_str, msg)
+                } else {
+                    ("changed", message.to_string()) // default to changed for non-conventional commits
                 };
-                // Remove the type prefix from conventional commits
-                let msg = conv_commit.description().to_string();
-                (type_str, msg)
-            } else {
-                ("changed", message.to_string()) // default to changed for non-conventional commits
-            };
             commits.push_str(&format!("{} {} {}\n", type_code, short_id, display_message));
         }
 
         // Create temporary directory and file with git-rebase-todo name for proper editor highlighting
-        let temp_dir = tempfile::Builder::new()
-            .prefix("rebase-merge")
-            .tempdir()?;
+        let temp_dir = tempfile::Builder::new().prefix("rebase-merge").tempdir()?;
         let temp_path = temp_dir.path().join("git-rebase-todo");
         let mut temp = std::fs::File::create(&temp_path)?;
         let template = EDITOR_TEMPLATE.replace("{commits}", &commits);
@@ -628,9 +700,7 @@ impl Changelog {
 
         // Open editor
         let editor = Self::get_editor()?;
-        let status = Command::new(editor)
-            .arg(&temp_path)
-            .status()?;
+        let status = Command::new(editor).arg(&temp_path).status()?;
 
         if !status.success() {
             return Err(io::Error::new(ErrorKind::Other, "Editor returned error"));
@@ -665,7 +735,7 @@ impl Changelog {
                 "r" => "removed",
                 "f" => "fixed",
                 "s" => "security",
-                _ => type_str
+                _ => type_str,
             };
 
             // Add the entry without showing individual diffs
@@ -678,10 +748,13 @@ impl Changelog {
 
         Ok(())
     }
-
 }
 
-fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _git_range_url: Option<&str>) -> String {
+fn changelog_to_markdown(
+    changelog: &IndexMap<&str, Release>,
+    original: &str,
+    _git_range_url: Option<&str>,
+) -> String {
     let header = extract_header(original).unwrap_or_else(|| "# Changelog\n\n".to_string());
     let mut output = header;
     let mut version_links = Vec::new();
@@ -713,9 +786,13 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _g
                 } else {
                     version_part.to_string()
                 };
-                
+
                 if release.title.contains(" - ") {
-                    format!("{} - {}", version_bracketed, release.title.split(" - ").nth(1).unwrap())
+                    format!(
+                        "{} - {}",
+                        version_bracketed,
+                        release.title.split(" - ").nth(1).unwrap()
+                    )
                 } else {
                     version_bracketed
                 }
@@ -729,12 +806,17 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _g
             for line in lines {
                 if line.trim().starts_with("### ") {
                     if !current_section_header.is_empty() {
-                        let content_exists = current_section_lines.iter().any(|l: &&str| {
-                            !l.trim().is_empty() && !l.trim().starts_with('#')
-                        });
+                        let content_exists = current_section_lines
+                            .iter()
+                            .any(|l: &&str| !l.trim().is_empty() && !l.trim().starts_with('#'));
                         if content_exists {
                             filtered_sections.push(current_section_header.to_string());
-                            filtered_sections.extend(current_section_lines.clone().into_iter().map(|s| s.to_string()));
+                            filtered_sections.extend(
+                                current_section_lines
+                                    .clone()
+                                    .into_iter()
+                                    .map(|s| s.to_string()),
+                            );
                         }
                     }
                     current_section_header = line;
@@ -744,12 +826,13 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _g
                 }
             }
             if !current_section_header.is_empty() {
-                let content_exists = current_section_lines.iter().any(|l: &&str| {
-                    !l.trim().is_empty() && !l.trim().starts_with('#')
-                });
+                let content_exists = current_section_lines
+                    .iter()
+                    .any(|l: &&str| !l.trim().is_empty() && !l.trim().starts_with('#'));
                 if content_exists {
                     filtered_sections.push(current_section_header.to_string());
-                    filtered_sections.extend(current_section_lines.into_iter().map(|s| s.to_string()));
+                    filtered_sections
+                        .extend(current_section_lines.into_iter().map(|s| s.to_string()));
                 }
             }
             if !filtered_sections.is_empty() {
@@ -775,8 +858,10 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _g
 
     if should_add_links && !version_links.is_empty() {
         // Check if version links are already present
-        let has_version_links = version_links.iter().any(|v| original.contains(&format!("[{}]:", v)));
-        
+        let has_version_links = version_links
+            .iter()
+            .any(|v| original.contains(&format!("[{}]:", v)));
+
         if !has_version_links {
             output.push_str("\n");
 
@@ -802,7 +887,7 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _g
             }
         }
     }
-    return output
+    return output;
     // // Format the markdown using comrak's format_commonmark formatter
     // let options = ComrakOptions::default();
     // let arena = comrak::Arena::new();
@@ -819,14 +904,14 @@ fn extract_header(original: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use parse_changelog::Parser;
     use std::fs;
     use tempfile::TempDir;
-    use parse_changelog::Parser;
 
     #[test]
     fn test_changelog_with_github_urls() {
         set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
-        
+
         let input = r#"# Changelog
 
 ## Unreleased
@@ -961,14 +1046,17 @@ All notable changes to this project will be documented in this file.
 
         // Second format with GitHub links
         let github_second_parse = parser.parse(&github_format).unwrap();
-        let github_second_format = changelog_to_markdown(&github_second_parse, &github_format, None);
+        let github_second_format =
+            changelog_to_markdown(&github_second_parse, &github_format, None);
 
         // Formats should be identical with GitHub links
         assert_eq!(github_format, github_second_format);
 
         // Verify GitHub links are present
         assert!(github_format.contains("//github.com/owner/repo"));
-        assert!(github_format.contains("[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD"));
+        assert!(
+            github_format.contains("[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD")
+        );
         assert!(github_format.contains("[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0"));
     }
 
@@ -1053,7 +1141,9 @@ All notable changes to this project will be documented in this file.
         let temp_path = temp_dir.path().join("CHANGELOG.md");
 
         // Create initial changelog
-        fs::write(&temp_path, r#"# Changelog
+        fs::write(
+            &temp_path,
+            r#"# Changelog
 
 ## [Unreleased]
 
@@ -1071,7 +1161,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - something
-"#).unwrap();
+"#,
+        )
+        .unwrap();
 
         let changelog = Changelog {
             path: temp_path.into(),
@@ -1105,7 +1197,6 @@ All notable changes to this project will be documented in this file.
         assert_eq!(content, expected);
     }
 
-
     #[test]
     fn test_preserve_original_header_custom() {
         let input = r#"Custom Header Line 1
@@ -1131,7 +1222,9 @@ Custom Header Line 2
         let temp_path = temp_dir.path().join("CHANGELOG.md");
 
         // Create initial changelog without Added section
-        fs::write(&temp_path, r#"# Changelog
+        fs::write(
+            &temp_path,
+            r#"# Changelog
 
 ## [Unreleased]
 
@@ -1144,7 +1237,9 @@ Custom Header Line 2
 ### Added
 
 - something
-"#).unwrap();
+"#,
+        )
+        .unwrap();
 
         let changelog = Changelog {
             path: temp_path.into(),
