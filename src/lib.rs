@@ -947,8 +947,8 @@ mod tests {
 ### Added
 - Initial release
 
-[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
-[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
+[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0
 "#;
 
         let parser = Parser::new();
@@ -1315,8 +1315,8 @@ Custom Header Line 2
 ### Added
 - Initial release
 
-[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
-[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
+[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0
 "#;
         assert_eq!(markdown, expected);
     }
