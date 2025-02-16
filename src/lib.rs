@@ -847,6 +847,19 @@ fn changelog_to_markdown(
         }
     }
 
+    // Remove any existing version link definitions from the output.
+    {
+         let mut lines: Vec<&str> = output.lines().collect();
+         while let Some(last) = lines.last() {
+             if last.trim().starts_with('[') {
+                 lines.pop();
+             } else {
+                 break;
+             }
+         }
+         output = lines.join("\n");
+    }
+    
     // Add version links if we can infer GitHub repo
     #[cfg(test)]
     let should_add_links = TEST_GITHUB_REPO.with(|cell| {
