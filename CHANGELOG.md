@@ -2,21 +2,23 @@
 
 example header. asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj
 
-
-
 foo
 
-* one
-* five
+- one
+- five
 
 two
 
 - three
 - four
 
-## [Unreleased]
+## Unreleased
 
-## [0.1.0] - 2025-02-15
+### Changed
+
+- improved error messages
+
+## 0.1.0
 
 ### Changed
 
