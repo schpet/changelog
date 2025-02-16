@@ -877,7 +877,7 @@ fn changelog_to_markdown(
         }
         for (i, version) in version_links.iter().enumerate() {
             let url = if let Some((owner, repo)) = infer_github_repo() {
-                let base = format!("//github.com/{}/{}", owner, repo);
+                let base = format!("https://github.com/{}/{}", owner, repo);
                 if i + 1 >= version_links.len() {
                     // For first release, link to the release tag
                     format!("{}/releases/tag/v{}", base, version)
