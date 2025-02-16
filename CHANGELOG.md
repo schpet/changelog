@@ -4,8 +4,8 @@ example header. asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asio
 
 foo
 
-- one
-- five
+* one
+* five
 
 two
 
@@ -13,6 +13,10 @@ two
 - four
 
 ## Unreleased
+
+### Added
+
+- foo
 
 ### Changed
 
