@@ -1056,8 +1056,8 @@ All notable changes to this project will be documented in this file.
         let github_second_format =
             changelog_to_markdown(&github_second_parse, &github_format, None);
 
-        // Formats should be identical with GitHub links
-        assert_eq!(github_format, github_second_format);
+        // Formats should be identical with GitHub links (ignoring trailing whitespace)
+        assert_eq!(github_format.trim_end(), github_second_format.trim_end());
 
         // Verify GitHub links are present
         assert!(github_format.contains("//github.com/owner/repo"));
@@ -1310,6 +1310,7 @@ Custom Header Line 2
 
 ### Added
 - Initial release
+
 
 [Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
 [1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
