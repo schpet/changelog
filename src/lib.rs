@@ -891,6 +891,9 @@ fn changelog_to_markdown(
             output.push_str(&format!("[{}]: {}\n", version, url));
         }
     }
+    if !output.ends_with("\n") {
+        output.push_str("\n");
+    }
     return output;
     // // Format the markdown using comrak's format_commonmark formatter
     // let options = ComrakOptions::default();
