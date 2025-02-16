@@ -243,7 +243,7 @@ impl Changelog {
         let parsed = parser.parse(&content)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        fs::write(&self.path, changelog_to_markdown(&parsed, &content, infer_git_range_url().as_deref()))?;
+        fs::write(&self.path, changelog_to_markdown(&parsed, &content, None))?;
         println!("Formatted CHANGELOG.md");
         Ok(())
     }
@@ -343,7 +343,7 @@ impl Changelog {
         for (k, v) in changelog.into_iter() {
             new_changelog.insert(k, v);
         }
-        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content, infer_git_range_url().as_deref()))?;
+        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content, None))?;
         println!("Released version {}", version_str);
         Ok(())
     }
@@ -727,7 +727,7 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
     }
 
     // Add version links if git_range_url is provided
-    if let Some(url_template) = git_range_url {
+    if git_range_url.is_some() {
         if !version_links.is_empty() {
             output.push_str("\n");
 
