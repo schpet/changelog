@@ -2,6 +2,10 @@
 name = "changelog"
 version = "0.1.1"
 edition = "2021"
+authors = ["Peter Schilling"]
+repository = "https://github.com/schpet/changelog"
+homepage = "https://github.com/schpet/changelog"
+description = "CLI for updating a CHANGELOG.md"
 
 [dependencies]
 clap = { version = "4.5.29", features = ["derive"] }
@@ -16,3 +20,8 @@ dialoguer = "0.11.0"
 colored = "2.0"
 similar = "2.6.0"
 comrak = "0.35.0"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
