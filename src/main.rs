@@ -69,7 +69,7 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Add { description, r#type, version, git_range_url } => {
+        Commands::Add { description, r#type, version } => {
             let changelog = Changelog::new();
             if let Err(e) = changelog.add(description, r#type, version.as_deref(), true) {
                 eprintln!("Error adding changelog entry: {}", e);
