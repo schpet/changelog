@@ -681,7 +681,7 @@ impl Changelog {
 
 }
 
-fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, git_range_url: Option<&str>) -> String {
+fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _git_range_url: Option<&str>) -> String {
     let header = extract_header(original).unwrap_or_else(|| "# Changelog\n\n".to_string());
     let mut output = header;
     let mut version_links = Vec::new();
