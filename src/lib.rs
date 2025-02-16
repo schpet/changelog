@@ -726,8 +726,8 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
         }
     }
 
-    // Add version links if git_range_url is provided
-    if git_range_url.is_some() {
+    // Add version links if we can infer GitHub repo
+    if infer_github_repo().is_some() {
         if !version_links.is_empty() {
             output.push_str("\n");
 
