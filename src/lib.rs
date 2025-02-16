@@ -761,7 +761,7 @@ fn remove_markdown_links(content: &str, versions: &[String]) -> String {
             // Extract the link text between [ and ]
             if let Some(link_text) = line.split(']').next() {
                 let link_text = &link_text[1..]; // Remove the leading [
-                // Only remove if it matches a version
+                                                 // Only remove if it matches a version
                 !versions.iter().any(|v| v == link_text)
             } else {
                 true
@@ -782,7 +782,7 @@ fn changelog_to_markdown(
     output.push_str("\n\n");
 
     let mut version_links = Vec::new();
-    
+
     // Generate version sections
     for (_version, release) in changelog {
         if !release.notes.contains("# Changelog") {
@@ -875,15 +875,15 @@ fn changelog_to_markdown(
 
     // Remove any existing version link definitions from the output.
     {
-         let mut lines: Vec<&str> = output.lines().collect();
-         while let Some(last) = lines.last() {
-             if last.trim().starts_with('[') {
-                 lines.pop();
-             } else {
-                 break;
-             }
-         }
-         output = lines.join("\n");
+        let mut lines: Vec<&str> = output.lines().collect();
+        while let Some(last) = lines.last() {
+            if last.trim().starts_with('[') {
+                lines.pop();
+            } else {
+                break;
+            }
+        }
+        output = lines.join("\n");
     }
 
     // Add version links if we can infer GitHub repo
@@ -1096,10 +1096,11 @@ All notable changes to this project will be documented in this file.
 
         // Verify GitHub links are present
         assert!(github_format.contains("//github.com/owner/repo"));
+        assert!(github_format
+            .contains("[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD"));
         assert!(
-            github_format.contains("[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD")
+            github_format.contains("[1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0")
         );
-        assert!(github_format.contains("[1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0"));
     }
 
     #[test]
@@ -1356,12 +1357,14 @@ Custom Header Line 2
         let parser = parse_changelog::Parser::new();
         let changelog = parser.parse(input).unwrap();
         let markdown = changelog_to_markdown(&changelog, input, None);
-        
+
         // Verify the markdown link definitions are removed and regenerated correctly
         assert!(!markdown.contains("//incorrect/link"));
-        assert!(markdown.contains("[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD"));
+        assert!(
+            markdown.contains("[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD")
+        );
         assert!(markdown.contains("[1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0"));
-        assert!(!markdown.contains("[0.9.0]:"));  // Versions not in changelog should be removed
+        assert!(!markdown.contains("[0.9.0]:")); // Versions not in changelog should be removed
     }
 
     #[test]
