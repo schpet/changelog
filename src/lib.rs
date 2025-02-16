@@ -870,7 +870,7 @@ fn changelog_to_markdown(
     let should_add_links = infer_github_repo().is_some();
 
     if should_add_links && !version_links.is_empty() {
-        output.push_str("\n");
+        output.push_str("\n\n");
         for (i, version) in version_links.iter().enumerate() {
             let url = if let Some((owner, repo)) = infer_github_repo() {
                 let base = format!("//github.com/{}/{}", owner, repo);
