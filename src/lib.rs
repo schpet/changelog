@@ -1066,7 +1066,7 @@ All notable changes to this project will be documented in this file.
         // Verify GitHub links are present
         assert!(github_format.contains("//github.com/owner/repo"));
         assert!(
-            github_format.contains("[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD")
+            github_format.contains("[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD")
         );
         assert!(github_format.contains("[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0"));
     }
