@@ -15,17 +15,11 @@ enum Commands {
     Version {
         #[command(subcommand)]
         command: VersionCommands,
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
     },
     /// Show changelog entry
     Entry {
         /// Version to show (latest, unreleased, or specific version)
         version: String,
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
     },
     /// Add a new changelog entry 
     Add {
@@ -37,9 +31,6 @@ enum Commands {
         /// Version to add the change to (defaults to unreleased)
         #[arg(short, long)]
         version: Option<String>,
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
     },
     /// Release a new version
     Release {
@@ -48,31 +39,17 @@ enum Commands {
         /// Release date (defaults to today)
         #[arg(short, long)]
         date: Option<String>,
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
     },
     /// Review commits and add them to changelog
     Review {
         /// Version to add changes to
         #[arg(short, long)]
         version: Option<String>,
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
     },
     /// Format the changelog file
-    Fmt {
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
-    },
+    Fmt,
     /// Initialize a new changelog
-    Init {
-        /// Git range URL template (e.g. "https://github.com/user/repo/compare/<range>")
-        #[arg(long)]
-        git_range_url: Option<String>,
-    },
+    Init,
 }
 
 #[derive(Subcommand)]
@@ -93,7 +70,7 @@ fn main() {
 
     match &cli.command {
         Commands::Add { description, r#type, version, git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+            let changelog = Changelog::new();
             if let Err(e) = changelog.add(description, r#type, version.as_deref(), true) {
                 eprintln!("Error adding changelog entry: {}", e);
                 std::process::exit(1);

@@ -11,7 +11,26 @@ use chrono::Local;
 
 pub struct Changelog {
     path: Box<Path>,
-    git_range_url: Option<String>,
+}
+
+fn infer_git_range_url() -> Option<String> {
+    // Try to find git repository
+    if let Ok(repo) = Repository::discover(".") {
+        // Get the origin remote URL
+        if let Ok(remote) = repo.find_remote("origin") {
+            if let Some(url) = remote.url() {
+                // Convert SSH URLs to HTTPS
+                let url = url.replace("git@github.com:", "https://github.com/");
+                
+                // Extract owner/repo from GitHub URLs
+                if url.contains("github.com") {
+                    let url = url.trim_end_matches(".git").to_string();
+                    return Some(format!("{}/compare/<range>", url));
+                }
+            }
+        }
+    }
+    None
 }
 
 const EDITOR_TEMPLATE: &str = r#"{commits}
@@ -78,10 +97,9 @@ impl Changelog {
         }
         Err(io::Error::new(ErrorKind::NotFound, "No editor found"))
     }
-    pub fn new(git_range_url: Option<String>) -> Self {
+    pub fn new() -> Self {
         Changelog {
             path: Path::new("CHANGELOG.md").into(),
-            git_range_url,
         }
     }
 
