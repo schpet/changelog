@@ -25,7 +25,7 @@ fn infer_git_range_url() -> Option<String> {
                 // Extract owner/repo from GitHub URLs
                 if url.contains("github.com") {
                     let url = url.trim_end_matches(".git").to_string();
-                    return Some(format!("{}/compare/<range>", url));
+                    return Some(url);
                 }
             }
         }
@@ -724,14 +724,14 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
             for (i, version) in version_links.iter().enumerate() {
                 let url = if i + 1 >= version_links.len() {
                     // For first release, link to the release tag
-                    url_template.replace("/compare/<range>", &format!("/releases/tag/v{}", version))
+                    format!("{}/releases/tag/v{}", url_template, version)
                 } else if version == "Unreleased" {
                     // For unreleased, compare with latest version
-                    url_template.replace("<range>", &format!("v{}...HEAD", version_links[i + 1]))
+                    format!("{}/compare/v{}...HEAD", url_template, version_links[i + 1])
                 } else {
                     // For other versions, compare with previous version
                     let prev_ver = format!("v{}", version_links[i + 1]);
-                    url_template.replace("<range>", &format!("{}...v{}", prev_ver, version))
+                    format!("{}/compare/{}...v{}", url_template, prev_ver, version)
                 };
                 output.push_str(&format!("[{}]: {}\n", version, url));
             }
