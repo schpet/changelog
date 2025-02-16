@@ -857,34 +857,25 @@ fn changelog_to_markdown(
     let should_add_links = infer_github_repo().is_some();
 
     if should_add_links && !version_links.is_empty() {
-        // Check if version links are already present
-        let has_version_links = version_links
-            .iter()
-            .any(|v| original.contains(&format!("[{}]:", v)));
-
-        if !has_version_links {
-            output.push_str("\n");
-
-            // Add links for each version
-            for (i, version) in version_links.iter().enumerate() {
-                let url = if let Some((owner, repo)) = infer_github_repo() {
-                    let base = format!("//github.com/{}/{}", owner, repo);
-                    if i + 1 >= version_links.len() {
-                        // For first release, link to the release tag
-                        format!("{}/releases/tag/v{}", base, version)
-                    } else if version == "Unreleased" {
-                        // For unreleased, compare with latest version
-                        format!("{}/compare/v{}...HEAD", base, version_links[i + 1])
-                    } else {
-                        // For other versions, compare with previous version
-                        let prev_ver = format!("v{}", version_links[i + 1]);
-                        format!("{}/compare/{}...v{}", base, prev_ver, version)
-                    }
+        output.push_str("\n");
+        for (i, version) in version_links.iter().enumerate() {
+            let url = if let Some((owner, repo)) = infer_github_repo() {
+                let base = format!("//github.com/{}/{}", owner, repo);
+                if i + 1 >= version_links.len() {
+                    // For first release, link to the release tag
+                    format!("{}/releases/tag/v{}", base, version)
+                } else if version == "Unreleased" {
+                    // For unreleased, compare with latest version
+                    format!("{}/compare/v{}...HEAD", base, version_links[i + 1])
                 } else {
-                    continue;
-                };
-                output.push_str(&format!("[{}]: {}\n", version, url));
-            }
+                    // For other versions, compare with previous version
+                    let prev_ver = format!("v{}", version_links[i + 1]);
+                    format!("{}/compare/{}...v{}", base, prev_ver, version)
+                }
+            } else {
+                continue;
+            };
+            output.push_str(&format!("[{}]: {}\n", version, url));
         }
     }
     return output;
