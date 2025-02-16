@@ -17,6 +17,7 @@ two
 ### Added
 
 - foo
+- foo
 
 ### Changed
 
@@ -27,3 +28,6 @@ two
 ### Changed
 
 - Initial implementation
+
+[Unreleased]: https://github.com/user/repo/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/user/repo/compare/HEAD...v0.1.0
