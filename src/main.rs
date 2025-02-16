@@ -76,43 +76,43 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        Commands::Release { version_or_type, date, git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+        Commands::Release { version_or_type, date } => {
+            let changelog = Changelog::new();
             if let Err(e) = changelog.release(version_or_type, date.as_deref()) {
                 eprintln!("Error releasing version: {}", e);
                 std::process::exit(1);
             }
         }
-        Commands::Review { version, git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+        Commands::Review { version } => {
+            let changelog = Changelog::new();
             if let Err(e) = changelog.review(version.as_deref()) {
                 eprintln!("Error reviewing changes: {}", e);
                 std::process::exit(1);
             }
         }
-        Commands::Fmt { git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+        Commands::Fmt => {
+            let changelog = Changelog::new();
             if let Err(e) = changelog.fmt() {
                 eprintln!("Error formatting changelog: {}", e);
                 std::process::exit(1);
             }
         }
-        Commands::Init { git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+        Commands::Init => {
+            let changelog = Changelog::new();
             if let Err(e) = changelog.init() {
                 eprintln!("Error initializing changelog: {}", e);
                 std::process::exit(1);
             }
         }
-        Commands::Entry { version, git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+        Commands::Entry { version } => {
+            let changelog = Changelog::new();
             if let Err(e) = changelog.version_show(version) {
                 eprintln!("Error showing entry: {}", e);
                 std::process::exit(1);
             }
         }
-        Commands::Version { command, git_range_url } => {
-            let changelog = Changelog::new(git_range_url.clone());
+        Commands::Version { command } => {
+            let changelog = Changelog::new();
             match command {
                 VersionCommands::Latest => {
                     if let Err(e) = changelog.version_latest() {
