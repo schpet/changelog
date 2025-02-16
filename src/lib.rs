@@ -773,8 +773,11 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, _g
     #[cfg(not(test))]
     let should_add_links = infer_github_repo().is_some();
 
-    if should_add_links {
-        if !version_links.is_empty() {
+    if should_add_links && !version_links.is_empty() {
+        // Check if version links are already present
+        let has_version_links = version_links.iter().any(|v| original.contains(&format!("[{}]:", v)));
+        
+        if !has_version_links {
             output.push_str("\n");
 
             // Add links for each version
