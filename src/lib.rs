@@ -699,8 +699,19 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
             if !output.ends_with("\n\n") {
                 output.push_str("\n");
             }
-            let title = if git_range_url.is_some() {
-                release.title.to_string()
+            // Determine if we'll have GitHub links
+            #[cfg(test)]
+            let has_github = TEST_GITHUB_REPO.with(|cell| cell.borrow().is_some());
+            #[cfg(not(test))]
+            let has_github = infer_github_repo().is_some();
+
+            let title = if has_github {
+                // Keep or add brackets if we'll have links
+                if !release.title.starts_with('[') && !release.title.contains(" - ") {
+                    format!("[{}]", release.title)
+                } else {
+                    release.title.to_string()
+                }
             } else {
                 release.title.replace("[", "").replace("]", "")
             };
