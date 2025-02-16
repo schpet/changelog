@@ -763,7 +763,6 @@ mod tests {
 
         let changelog = Changelog {
             path: temp_path.into(),
-            git_range_url: None,
         };
 
         // First initialization should succeed
@@ -967,7 +966,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         let changelog = Changelog {
             path: temp_path.into(),
-            git_range_url: None,
         };
 
         // Add new entry
@@ -1076,7 +1074,6 @@ Custom Header Line 2
 
         let changelog = Changelog {
             path: temp_path.into(),
-            git_range_url: None,
         };
 
         // Add new entry that requires Added section
