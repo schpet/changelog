@@ -706,11 +706,18 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
             let has_github = infer_github_repo().is_some();
 
             let title = if has_github {
-                // Keep or add brackets if we'll have links
-                if !release.title.starts_with('[') && !release.title.contains(" - ") {
-                    format!("[{}]", release.title)
+                // Always keep or add brackets when we have GitHub links
+                let version_part = release.title.split(" - ").next().unwrap_or(&release.title);
+                let version_bracketed = if !version_part.starts_with('[') {
+                    format!("[{}]", version_part)
                 } else {
-                    release.title.to_string()
+                    version_part.to_string()
+                };
+                
+                if release.title.contains(" - ") {
+                    format!("{} - {}", version_bracketed, release.title.split(" - ").nth(1).unwrap())
+                } else {
+                    version_bracketed
                 }
             } else {
                 release.title.replace("[", "").replace("]", "")
