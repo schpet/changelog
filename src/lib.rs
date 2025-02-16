@@ -984,7 +984,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     fn test_changelog_format_with_git_range_url() {
         let input = r#"# Changelog
 
-## [0.6.11] - 2025-01-19
+## 0.6.11 - 2025-01-19
 
 ### CLI
 
