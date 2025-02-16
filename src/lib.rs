@@ -923,51 +923,50 @@ All notable changes to this project will be documented in this file.
 
     #[test]
     fn test_fmt_is_idempotent() {
+        set_test_github_repo(None, None);
         let initial_content = r#"# Changelog
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Added
+- Feature A
 
-### Changed
+## [1.0.0] - 2025-01-01
 
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-"#;
+### Added
+- Initial release"#;
 
         let parser = Parser::new();
 
-        // First format
+        // First format without GitHub links
         let first_parse = parser.parse(initial_content).unwrap();
         let first_format = changelog_to_markdown(&first_parse, initial_content, None);
 
-        // Second format
+        // Second format without GitHub links
         let second_parse = parser.parse(&first_format).unwrap();
-        let second_format = changelog_to_markdown(&second_parse, initial_content, None);
+        let second_format = changelog_to_markdown(&second_parse, &first_format, None);
 
-        // Third format
-        let third_parse = parser.parse(&second_format).unwrap();
-        let third_format = changelog_to_markdown(&third_parse, initial_content, None);
-
-        // All formats should be identical
+        // Formats should be identical without GitHub links
         assert_eq!(first_format, second_format);
-        assert_eq!(second_format, third_format);
 
-        // Content should be preserved
-        // assert!(first_format.contains("### Added"));
-        // assert!(first_format.contains("### Changed"));
-        // assert!(first_format.contains("### Deprecated"));
-        // assert!(first_format.contains("### Removed"));
-        // assert!(first_format.contains("### Fixed"));
-        // assert!(first_format.contains("### Security"));
+        // Now test with GitHub links
+        set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
+
+        // First format with GitHub links
+        let github_parse = parser.parse(initial_content).unwrap();
+        let github_format = changelog_to_markdown(&github_parse, initial_content, None);
+
+        // Second format with GitHub links
+        let github_second_parse = parser.parse(&github_format).unwrap();
+        let github_second_format = changelog_to_markdown(&github_second_parse, &github_format, None);
+
+        // Formats should be identical with GitHub links
+        assert_eq!(github_format, github_second_format);
+
+        // Verify GitHub links are present
+        assert!(github_format.contains("//github.com/owner/repo"));
+        assert!(github_format.contains("[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD"));
+        assert!(github_format.contains("[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0"));
     }
 
     #[test]
