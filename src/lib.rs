@@ -989,13 +989,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### CLI
 
 - Accept non-UTF-8 changelog path.
+
 - Remove dependency on `anyhow` (previously used in CLI (`default` feature)).
+
 - Diagnostic improvements.
-
-## [0.6.10] - 2025-01-18
-
-### Added
-- Initial release"#;
+"#;
 
         let expected = r#"# Changelog
 
@@ -1004,16 +1002,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### CLI
 
 - Accept non-UTF-8 changelog path.
+
 - Remove dependency on `anyhow` (previously used in CLI (`default` feature)).
+
 - Diagnostic improvements.
 
-## [0.6.10] - 2025-01-18
-
-### Added
-- Initial release
-
 [0.6.11]: https://github.com/taiki-e/parse-changelog/compare/v0.6.10...v0.6.11
-[0.6.10]: https://github.com/taiki-e/parse-changelog/compare/HEAD...v0.6.10
 "#;
 
         let parser = Parser::new();
