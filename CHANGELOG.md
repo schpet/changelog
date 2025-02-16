@@ -5,6 +5,7 @@
 ### Fixed
 
 - update urls if they are incorrect
+- prevent duplicate markdown link definitions for a release
 
 ### Changed
 
