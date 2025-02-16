@@ -1261,4 +1261,43 @@ Custom Header Line 2
 "#;
         assert_eq!(content, expected);
     }
+
+    #[test]
+    fn test_update_incorrect_links() {
+        set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
+        let input = r#"# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.0.0] - 2025-01-01
+
+### Added
+- Initial release
+
+[Unreleased]: //incorrect/link
+[1.0.0]: //incorrect/link
+"#;
+        let parser = parse_changelog::Parser::new();
+        let changelog = parser.parse(input).unwrap();
+        let markdown = changelog_to_markdown(&changelog, input, None);
+        let expected = r#"# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.0.0] - 2025-01-01
+
+### Added
+- Initial release
+
+[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
+[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
+"#;
+        assert_eq!(markdown, expected);
+    }
 }
