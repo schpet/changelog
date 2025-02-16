@@ -13,10 +13,29 @@ pub struct Changelog {
     path: Box<Path>,
 }
 
+#[cfg(test)]
+thread_local! {
+    static TEST_GITHUB_REPO: std::cell::RefCell<Option<(String, String)>> = std::cell::RefCell::new(None);
+}
+
+#[cfg(test)]
+pub fn set_test_github_repo(owner: Option<String>, repo: Option<String>) {
+    TEST_GITHUB_REPO.with(|cell| {
+        *cell.borrow_mut() = owner.zip(repo);
+    });
+}
+
 fn infer_github_repo() -> Option<(String, String)> {
-    // Try to find git repository
+    #[cfg(test)]
+    {
+        // In tests, return the mock value if set
+        if let Some(repo) = TEST_GITHUB_REPO.with(|cell| cell.borrow().clone()) {
+            return Some(repo);
+        }
+    }
+
+    // Production code path
     if let Ok(repo) = Repository::discover(".") {
-        // Get the origin remote URL
         if let Ok(remote) = repo.find_remote("origin") {
             if let Some(url) = remote.url() {
                 // Handle both HTTPS and SSH GitHub URLs
@@ -659,6 +678,45 @@ impl Changelog {
 
         Ok(())
     }
+
+    #[test]
+    fn test_changelog_with_github_urls() {
+        set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
+        
+        let input = r#"# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.0.0] - 2025-01-01
+
+### Added
+- Initial release"#;
+
+        let expected = r#"# Changelog
+
+## Unreleased
+
+### Added
+- New feature
+
+## 1.0.0 - 2025-01-01
+
+### Added
+- Initial release
+
+[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
+[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
+"#;
+
+        let parser = Parser::new();
+        let changelog = parser.parse(input).unwrap();
+        let markdown = changelog_to_markdown(&changelog, input, None);
+
+        assert_eq!(markdown, expected);
+    }
 }
 
 fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, git_range_url: Option<&str>) -> String {
@@ -803,6 +861,7 @@ mod tests {
 
     #[test]
     fn test_changelog_to_markdown() {
+        set_test_github_repo(None, None);
         let content = r#"# Changelog
 All notable changes to this project will be documented in this file.
 
@@ -886,6 +945,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     #[test]
     fn test_changelog_format_exact() {
+        set_test_github_repo(None, None);
         let input = r#"# Changelog
 
 ## [Unreleased]
@@ -934,6 +994,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     #[test]
     fn test_changelog_format_with_date() {
+        set_test_github_repo(None, None);
         let input = r#"# Changelog
 
 ## [1.0.0] - 2025-02-06
@@ -958,6 +1019,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     #[test]
     fn test_add_entry_to_section() {
+        set_test_github_repo(None, None);
         let temp_dir = TempDir::new().unwrap();
         let temp_path = temp_dir.path().join("CHANGELOG.md");
 
@@ -1035,6 +1097,7 @@ Custom Header Line 2
 
     #[test]
     fn test_add_entry_creates_missing_section() {
+        set_test_github_repo(None, None);
         let temp_dir = TempDir::new().unwrap();
         let temp_path = temp_dir.path().join("CHANGELOG.md");
 
