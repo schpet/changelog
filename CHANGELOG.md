@@ -1,29 +1,16 @@
 # Changelog
 
-example header. asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj asiodfjasdoifj
+## [Unreleased]
 
-foo
+### Fixed
 
-* one
-* five
-
-two
-
-- three
-- four
-
-## Unreleased
+- Preserve changelog header
 
 ### Added
 
-- foo
-- foo
+- Conditionally add GitHub links in changelog generation
 
-### Changed
-
-- improved error messages
-
-## 0.1.0
+## [0.1.0]
 
 ### Changed
 
