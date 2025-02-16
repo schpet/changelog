@@ -750,6 +750,14 @@ impl Changelog {
     }
 }
 
+fn remove_markdown_links(content: &str) -> String {
+    content
+        .lines()
+        .filter(|line| !line.trim_start().starts_with('[') || !line.contains("]: "))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn changelog_to_markdown(
     changelog: &IndexMap<&str, Release>,
     original: &str,
@@ -765,7 +773,9 @@ fn changelog_to_markdown(
     // Generate version sections
     for (_version, release) in changelog {
         if !release.notes.contains("# Changelog") {
-            let mut lines: Vec<_> = release.notes.lines().collect();
+            // Remove any existing markdown links from the notes
+            let cleaned_notes = remove_markdown_links(release.notes);
+            let mut lines: Vec<_> = cleaned_notes.lines().collect();
             if let Some(pos) = lines.iter().position(|line| line.trim().starts_with("## ")) {
                 lines.drain(pos..=pos);
                 while pos < lines.len() && lines[pos].trim().is_empty() {
