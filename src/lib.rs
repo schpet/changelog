@@ -679,44 +679,6 @@ impl Changelog {
         Ok(())
     }
 
-    #[test]
-    fn test_changelog_with_github_urls() {
-        set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
-        
-        let input = r#"# Changelog
-
-## [Unreleased]
-
-### Added
-- New feature
-
-## [1.0.0] - 2025-01-01
-
-### Added
-- Initial release"#;
-
-        let expected = r#"# Changelog
-
-## Unreleased
-
-### Added
-- New feature
-
-## 1.0.0 - 2025-01-01
-
-### Added
-- Initial release
-
-[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
-[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
-"#;
-
-        let parser = Parser::new();
-        let changelog = parser.parse(input).unwrap();
-        let markdown = changelog_to_markdown(&changelog, input, None);
-
-        assert_eq!(markdown, expected);
-    }
 }
 
 fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, git_range_url: Option<&str>) -> String {
@@ -831,6 +793,45 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
     use parse_changelog::Parser;
+
+    #[test]
+    fn test_changelog_with_github_urls() {
+        set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
+        
+        let input = r#"# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.0.0] - 2025-01-01
+
+### Added
+- Initial release"#;
+
+        let expected = r#"# Changelog
+
+## Unreleased
+
+### Added
+- New feature
+
+## 1.0.0 - 2025-01-01
+
+### Added
+- Initial release
+
+[Unreleased]: //github.com/owner/repo/compare/v1.0.0...HEAD
+[1.0.0]: //github.com/owner/repo/releases/tag/v1.0.0
+"#;
+
+        let parser = Parser::new();
+        let changelog = parser.parse(input).unwrap();
+        let markdown = changelog_to_markdown(&changelog, input, None);
+
+        assert_eq!(markdown, expected);
+    }
 
     #[test]
     fn test_init_creates_changelog() {
