@@ -232,7 +232,7 @@ impl Changelog {
         let parsed = parser.parse(&content)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        fs::write(&self.path, changelog_to_markdown(&parsed, &content, self.git_range_url.as_deref()))?;
+        fs::write(&self.path, changelog_to_markdown(&parsed, &content, infer_git_range_url().as_deref()))?;
         println!("Formatted CHANGELOG.md");
         Ok(())
     }
