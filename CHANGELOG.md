@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- update urls if they are incorrect
+
+### Changed
+
+- use https:// scheme urls instead of // ones
+
 ## [0.1.1] - 2025-02-15
 
 ### Fixed
@@ -18,6 +26,6 @@
 
 - Initial implementation
 
-[Unreleased]: //github.com/schpet/changelog/compare/v0.1.1...HEAD
-[0.1.1]: //github.com/schpet/changelog/compare/v0.1.0...v0.1.1
-[0.1.0]: //github.com/schpet/changelog/releases/tag/v0.1.0
+[Unreleased]: https://github.com/schpet/changelog/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/schpet/changelog/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/schpet/changelog/releases/tag/v0.1.0
