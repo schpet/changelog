@@ -13,19 +13,30 @@ pub struct Changelog {
     path: Box<Path>,
 }
 
-fn infer_git_range_url() -> Option<String> {
+fn infer_github_repo() -> Option<(String, String)> {
     // Try to find git repository
     if let Ok(repo) = Repository::discover(".") {
         // Get the origin remote URL
         if let Ok(remote) = repo.find_remote("origin") {
             if let Some(url) = remote.url() {
-                // Convert SSH URLs to HTTPS
-                let url = url.replace("git@github.com:", "https://github.com/");
+                // Handle both HTTPS and SSH GitHub URLs
+                let parts = if url.starts_with("git@github.com:") {
+                    url.trim_start_matches("git@github.com:")
+                        .trim_end_matches(".git")
+                        .split('/')
+                        .collect::<Vec<_>>()
+                } else if url.contains("github.com") {
+                    url.split("github.com/")
+                        .nth(1)?
+                        .trim_end_matches(".git")
+                        .split('/')
+                        .collect::<Vec<_>>()
+                } else {
+                    return None;
+                };
                 
-                // Extract owner/repo from GitHub URLs
-                if url.contains("github.com") {
-                    let url = url.trim_end_matches(".git").to_string();
-                    return Some(url);
+                if parts.len() >= 2 {
+                    return Some((parts[0].to_string(), parts[1].to_string()));
                 }
             }
         }
@@ -722,16 +733,21 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
 
             // Add links for each version
             for (i, version) in version_links.iter().enumerate() {
-                let url = if i + 1 >= version_links.len() {
-                    // For first release, link to the release tag
-                    format!("{}/releases/tag/v{}", url_template, version)
-                } else if version == "Unreleased" {
-                    // For unreleased, compare with latest version
-                    format!("{}/compare/v{}...HEAD", url_template, version_links[i + 1])
+                let url = if let Some((owner, repo)) = infer_github_repo() {
+                    let base = format!("//github.com/{}/{}", owner, repo);
+                    if i + 1 >= version_links.len() {
+                        // For first release, link to the release tag
+                        format!("{}/releases/tag/v{}", base, version)
+                    } else if version == "Unreleased" {
+                        // For unreleased, compare with latest version
+                        format!("{}/compare/v{}...HEAD", base, version_links[i + 1])
+                    } else {
+                        // For other versions, compare with previous version
+                        let prev_ver = format!("v{}", version_links[i + 1]);
+                        format!("{}/compare/{}...v{}", base, prev_ver, version)
+                    }
                 } else {
-                    // For other versions, compare with previous version
-                    let prev_ver = format!("v{}", version_links[i + 1]);
-                    format!("{}/compare/{}...v{}", url_template, prev_ver, version)
+                    continue;
                 };
                 output.push_str(&format!("[{}]: {}\n", version, url));
             }
