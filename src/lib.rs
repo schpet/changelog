@@ -747,7 +747,15 @@ fn changelog_to_markdown(changelog: &IndexMap<&str, Release>, original: &str, gi
     }
 
     // Add version links if we can infer GitHub repo
-    if infer_github_repo().is_some() {
+    #[cfg(test)]
+    let should_add_links = TEST_GITHUB_REPO.with(|cell| {
+        // Only add links if test repo is Some
+        cell.borrow().is_some()
+    });
+    #[cfg(not(test))]
+    let should_add_links = infer_github_repo().is_some();
+
+    if should_add_links {
         if !version_links.is_empty() {
             output.push_str("\n");
 
