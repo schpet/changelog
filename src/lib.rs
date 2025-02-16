@@ -755,11 +755,14 @@ fn changelog_to_markdown(
     original: &str,
     _git_range_url: Option<&str>,
 ) -> String {
+    // Extract header (everything before first h2)
     let header = extract_header(original).unwrap_or_else(|| "# Changelog\n\n".to_string());
-    let mut output = header;
+    let mut output = header.trim_end().to_string();
+    output.push_str("\n\n");
+
     let mut version_links = Vec::new();
-    output.push_str("\n");
-    // Add version sections
+    
+    // Generate version sections
     for (_version, release) in changelog {
         if !release.notes.contains("# Changelog") {
             let mut lines: Vec<_> = release.notes.lines().collect();
@@ -909,7 +912,12 @@ fn changelog_to_markdown(
 }
 
 fn extract_header(original: &str) -> Option<String> {
-    original.split("\n##").next().map(|s| s.to_string())
+    // Find the first h2 (##) and take everything before it
+    if let Some(idx) = original.find("\n## ") {
+        Some(original[..idx].trim_end().to_string())
+    } else {
+        Some(original.trim_end().to_string())
+    }
 }
 
 #[cfg(test)]
