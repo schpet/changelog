@@ -332,7 +332,7 @@ impl Changelog {
         for (k, v) in changelog.into_iter() {
             new_changelog.insert(k, v);
         }
-        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content, self.git_range_url.as_deref()))?;
+        fs::write(&self.path, changelog_to_markdown(&new_changelog, &content, infer_git_range_url().as_deref()))?;
         println!("Released version {}", version_str);
         Ok(())
     }
