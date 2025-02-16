@@ -1301,6 +1301,36 @@ Custom Header Line 2
     }
 
     #[test]
+    fn test_search_replace_block_format() {
+        set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
+        let input = r#"# Changelog
+
+## [Unreleased]
+
+### Added
+- New feature
+
+## [1.0.0] - 2025-01-01
+
+### Added
+- Initial release
+
+[Unreleased]: //incorrect/link
+[1.0.0]: //incorrect/link
+[0.9.0]: //incorrect/link
+"#;
+        let parser = parse_changelog::Parser::new();
+        let changelog = parser.parse(input).unwrap();
+        let markdown = changelog_to_markdown(&changelog, input, None);
+        
+        // Verify the markdown link definitions are removed and regenerated correctly
+        assert!(!markdown.contains("//incorrect/link"));
+        assert!(markdown.contains("[Unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD"));
+        assert!(markdown.contains("[1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0"));
+        assert!(!markdown.contains("[0.9.0]:"));  // Versions not in changelog should be removed
+    }
+
+    #[test]
     fn test_update_incorrect_links() {
         set_test_github_repo(Some("owner".to_string()), Some("repo".to_string()));
         let input = r#"# Changelog
