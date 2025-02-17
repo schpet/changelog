@@ -50,7 +50,7 @@ enum Commands {
     /// Initialize a new changelog
     Init,
     /// Generate shell completion scripts
-    Completion {
+    Completions {
         /// Shell to generate completions for
         #[arg(value_enum)]
         shell: clap_complete::Shell,
@@ -146,7 +146,7 @@ fn main() {
                 }
             }
         }
-        Commands::Completion { shell } => {
+        Commands::Completions { shell } => {
             clap_complete::generate(
                 *shell,
                 &mut Cli::command(),
