@@ -1,40 +1,5 @@
 use changelog::{Changelog, ChangeType};
-use clap::{Parser, Subcommand, ValueEnum};
-
-#[derive(Clone, ValueEnum)]
-pub enum ChangeType {
-    /// New features
-    #[value(name = "added", alias = "a")]
-    Added,
-    /// Changes in existing functionality
-    #[value(name = "changed", alias = "c")]
-    Changed,
-    /// Soon-to-be removed features
-    #[value(name = "deprecated", alias = "d")]
-    Deprecated,
-    /// Removed features
-    #[value(name = "removed", alias = "r")]
-    Removed,
-    /// Bug fixes
-    #[value(name = "fixed", alias = "f")]
-    Fixed,
-    /// Security fixes
-    #[value(name = "security", alias = "s")]
-    Security,
-}
-
-impl ToString for ChangeType {
-    fn to_string(&self) -> String {
-        match self {
-            ChangeType::Added => "added".to_string(),
-            ChangeType::Changed => "changed".to_string(),
-            ChangeType::Deprecated => "deprecated".to_string(),
-            ChangeType::Removed => "removed".to_string(),
-            ChangeType::Fixed => "fixed".to_string(),
-            ChangeType::Security => "security".to_string(),
-        }
-    }
-}
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

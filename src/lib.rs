@@ -1,4 +1,39 @@
-use crate::ChangeType;
+use clap::ValueEnum;
+#[derive(Clone, ValueEnum)]
+pub enum ChangeType {
+    /// New features
+    #[value(name = "added", alias = "a")]
+    Added,
+    /// Changes in existing functionality
+    #[value(name = "changed", alias = "c")]
+    Changed,
+    /// Soon-to-be removed features
+    #[value(name = "deprecated", alias = "d")]
+    Deprecated,
+    /// Removed features
+    #[value(name = "removed", alias = "r")]
+    Removed,
+    /// Bug fixes
+    #[value(name = "fixed", alias = "f")]
+    Fixed,
+    /// Security fixes
+    #[value(name = "security", alias = "s")]
+    Security,
+}
+
+impl ToString for ChangeType {
+    fn to_string(&self) -> String {
+        match self {
+            ChangeType::Added => "added".to_string(),
+            ChangeType::Changed => "changed".to_string(),
+            ChangeType::Deprecated => "deprecated".to_string(),
+            ChangeType::Removed => "removed".to_string(),
+            ChangeType::Fixed => "fixed".to_string(),
+            ChangeType::Security => "security".to_string(),
+        }
+    }
+}
+
 use chrono::Local;
 use colored::Colorize;
 use git2::Repository;
@@ -197,7 +232,7 @@ impl Changelog {
         let release = changelog.get_mut(version_key).unwrap();
 
         // Find the appropriate section
-        let section = type_.to_string();
+        let section = r#type.to_string();
 
         // Add the entry to the appropriate section
         let section_marker = format!("### {}", section[..1].to_uppercase() + &section[1..]);
