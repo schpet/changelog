@@ -1,5 +1,5 @@
 use changelog::{Changelog, ChangeType};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -49,6 +49,12 @@ enum Commands {
     Fmt,
     /// Initialize a new changelog
     Init,
+    /// Generate shell completion scripts
+    Completion {
+        /// Shell to generate completions for
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
 }
 
 #[derive(Subcommand)]
@@ -139,6 +145,14 @@ fn main() {
                     }
                 }
             }
+        }
+        Commands::Completion { shell } => {
+            clap_complete::generate(
+                shell,
+                &mut Cli::command(),
+                env!("CARGO_PKG_NAME"),
+                &mut std::io::stdout(),
+            );
         }
     }
 }
