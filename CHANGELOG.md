@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-02-17
+
+### Fixed
+
+- fix some of the builds by removing dependency on openssl-sys
+
 ## [0.1.2] - 2025-02-16
 
 ### Fixed
@@ -29,7 +35,8 @@
 
 - Initial implementation
 
-[Unreleased]: https://github.com/schpet/changelog/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/schpet/changelog/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/schpet/changelog/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/schpet/changelog/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/schpet/changelog/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/schpet/changelog/releases/tag/v0.1.0
