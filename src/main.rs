@@ -20,7 +20,7 @@ enum Commands {
         /// Version to show (latest, unreleased, or specific version)
         version: String,
     },
-    /// Add a new changelog entry change type
+    /// Append a change to the unreleased section or specific version
     Add {
         /// Description of the change
         description: String,
