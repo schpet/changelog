@@ -148,7 +148,7 @@ fn main() {
         }
         Commands::Completion { shell } => {
             clap_complete::generate(
-                shell,
+                *shell,
                 &mut Cli::command(),
                 env!("CARGO_PKG_NAME"),
                 &mut std::io::stdout(),
