@@ -570,7 +570,7 @@ impl Changelog {
         };
 
         match start {
-            Some(start) => println!("{}..{}", start, end),
+            Some(start) => println!("{}...{}", start, end),
             None => println!("{}", end),
         };
 
