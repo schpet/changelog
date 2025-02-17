@@ -1,3 +1,4 @@
+use crate::ChangeType;
 use chrono::Local;
 use colored::Colorize;
 use git2::Repository;
