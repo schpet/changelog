@@ -25,7 +25,7 @@ enum Commands {
         /// Description of the change
         description: String,
         /// Type of change
-        #[arg(short, long, default_value = "changed")]
+        #[arg(short, long, required = true)]
         r#type: ChangeType,
         /// Version to add the change to (defaults to unreleased)
         #[arg(short, long)]
