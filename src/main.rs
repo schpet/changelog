@@ -1,5 +1,40 @@
-use changelog::Changelog;
-use clap::{Parser, Subcommand};
+use changelog::{Changelog, ChangeType};
+use clap::{Parser, Subcommand, ValueEnum};
+
+#[derive(Clone, ValueEnum)]
+pub enum ChangeType {
+    /// New features
+    #[value(name = "added", alias = "a")]
+    Added,
+    /// Changes in existing functionality
+    #[value(name = "changed", alias = "c")]
+    Changed,
+    /// Soon-to-be removed features
+    #[value(name = "deprecated", alias = "d")]
+    Deprecated,
+    /// Removed features
+    #[value(name = "removed", alias = "r")]
+    Removed,
+    /// Bug fixes
+    #[value(name = "fixed", alias = "f")]
+    Fixed,
+    /// Security fixes
+    #[value(name = "security", alias = "s")]
+    Security,
+}
+
+impl ToString for ChangeType {
+    fn to_string(&self) -> String {
+        match self {
+            ChangeType::Added => "added".to_string(),
+            ChangeType::Changed => "changed".to_string(),
+            ChangeType::Deprecated => "deprecated".to_string(),
+            ChangeType::Removed => "removed".to_string(),
+            ChangeType::Fixed => "fixed".to_string(),
+            ChangeType::Security => "security".to_string(),
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -24,9 +59,9 @@ enum Commands {
     Add {
         /// Description of the change
         description: String,
-        /// Type of change: added (a), changed (c), deprecated (d), removed (r), fixed (f), security (s)
+        /// Type of change
         #[arg(short, long, default_value = "changed")]
-        r#type: String,
+        r#type: ChangeType,
         /// Version to add the change to (defaults to unreleased)
         #[arg(short, long)]
         version: Option<String>,

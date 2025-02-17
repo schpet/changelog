@@ -196,18 +196,7 @@ impl Changelog {
         let release = changelog.get_mut(version_key).unwrap();
 
         // Find the appropriate section
-        let section = match type_.to_lowercase().as_str() {
-            "added" | "a" => "added",
-            "changed" | "c" => "changed",
-            "deprecated" | "d" => "deprecated",
-            "removed" | "r" => "removed",
-            "fixed" | "f" => "fixed",
-            "security" | "s" => "security",
-            _ => return Err(io::Error::new(
-                ErrorKind::InvalidInput,
-                format!("Invalid change type: {}. Must be one of: added (a), changed (c), deprecated (d), removed (r), fixed (f), security (s)", type_),
-            )),
-        };
+        let section = type_.to_string();
 
         // Add the entry to the appropriate section
         let section_marker = format!("### {}", section[..1].to_uppercase() + &section[1..]);
