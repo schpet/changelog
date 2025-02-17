@@ -165,7 +165,7 @@ impl Changelog {
     pub fn add(
         &self,
         description: &str,
-        type_: &str,
+        r#type: &ChangeType,
         version: Option<&str>,
         show_diff: bool,
     ) -> io::Result<()> {
