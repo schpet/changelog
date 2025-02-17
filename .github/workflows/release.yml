@@ -136,6 +136,10 @@ jobs:
           merge-multiple: true
       - name: Install dependencies
         run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            brew install openssl@3
+            echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
+          fi
           ${{ matrix.packages_install }}
       - name: Build artifacts
         run: |
