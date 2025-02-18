@@ -34,6 +34,9 @@ changelog completions bash > ~/.local/share/bash-completion/completions/changelo
 changelog completions zsh > ~/.zsh/completions/_changelog  # ensure dir exists and is in fpath
 
 # fish
+source (changelog completions fish | psub) # in ~/.config/fish/config.fish
+
+# alternatively:
 changelog completions fish > ~/.config/fish/completions/changelog.fish
 ```
 
