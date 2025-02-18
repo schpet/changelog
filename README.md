@@ -28,10 +28,10 @@ manage your project's changelog from the command line.
 
 ### adding entries
 
-add a new entry to the unreleased section:
+add a new entry to the unreleased section (requires --type flag):
 
 ```
-$ changelog add "new api endpoint for users"
+$ changelog add "new api endpoint for users" --type added
 + ### Added
 + - new api endpoint for users
 
