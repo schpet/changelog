@@ -3,8 +3,8 @@
 a command line tool for managing changelogs following the [keep a changelog](https://keepachangelog.com) format.
 
 i like the idea of keeping a changelog but it's a bit of a pain. you need to know what
- changed, what version you are on, what the keep a changelog types are should you be 
-using those, and manually adding links for each release adds up to enough work that
+ changed, what version you are on, what the keep a changelog types are (should you be 
+using those), and manually adding links for each release adds up to enough work that
 it is annoying to bother with. this changelog cli aims to make those operations easy
 and fun, without you needing to pretend your conventional commits make a good changelog.
 
