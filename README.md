@@ -64,7 +64,7 @@ Released version 1.0.0
 
 ### reviewing changes
 
-interactively review git commits and add them to the changelog:
+interactively review git commits and add them to the changelog (similar to `git rebase -i`):
 
 ```
 $ changelog review
@@ -73,6 +73,8 @@ Select commits to include in changelog (press 'a' to select all):
   [ ] def5678 fix typo in docs
   [ ] ghi9012 update dependencies
 ```
+
+After selecting commits, you'll be dropped into your editor to categorize and reword the changes, just like an interactive rebase.
 
 ### version information
 
