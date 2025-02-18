@@ -22,6 +22,21 @@ brew install schpet/tap/changelog
 
 [https://github.com/schpet/changelog/releases/latest](https://github.com/schpet/changelog/releases/latest)
 
+### shell completions
+
+generate and install shell completions:
+
+```bash
+# bash
+changelog completions bash > ~/.local/share/bash-completion/completions/changelog
+
+# zsh
+changelog completions zsh > ~/.zsh/completions/_changelog  # ensure dir exists and is in fpath
+
+# fish
+changelog completions fish > ~/.config/fish/completions/changelog.fish
+```
+
 ## usage
 
 manage your project's changelog from the command line.
