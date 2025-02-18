@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Make '--type' flag required on add command
+
+### Added
+
+- support for shell completions
+
 ## [0.1.3] - 2025-02-17
 
 ### Fixed
