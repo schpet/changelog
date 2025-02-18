@@ -2,16 +2,25 @@
 
 a command line tool for managing changelogs following the [keep a changelog](https://keepachangelog.com) format.
 
-i like the idea of keeping a changelog but it's a bit of a pain. you need to know what
- changed, what version you are on, what the keep a changelog types are (should you be 
-using those), and manually adding links for each release adds up to enough work that
-it is annoying to bother with. this changelog cli aims to make those operations easy
-and fun, without you needing to pretend your conventional commits make a good changelog.
+## why
 
+i like the idea of keeping a changelog but it's a bit of a pain. you need to know what changed, know what version you are on, know how to compare the changes between those, know the [keep a changelog format][kac], manually add the right markdown headers and links for each release.
+
+this tool is aims to make it easy and fun to keep your changelog up to date. it offers commands to review your changes in an interface similar to a git interactive rebase, allowing you to select and reword commit messages into meaningful changelog entries. another command to add `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, and `Security` changes in a structured way. and a command to make a release with easy semver bumping.
+
+[kac]: https://keepachangelog.com/en/1.1.0/
 
 ## install
 
-todo
+### homebrew
+
+```
+brew install schpet/tap/changelog
+```
+
+### binaries
+
+[https://github.com/schpet/changelog/releases/latest](https://github.com/schpet/changelog/releases/latest)
 
 ## usage
 

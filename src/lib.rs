@@ -764,15 +764,20 @@ impl Changelog {
             };
 
             // Add the entry without showing individual diffs
-            self.add(description, &match type_ {
-                "added" | "a" => ChangeType::Added,
-                "changed" | "c" => ChangeType::Changed,
-                "deprecated" | "d" => ChangeType::Deprecated,
-                "removed" | "r" => ChangeType::Removed,
-                "fixed" | "f" => ChangeType::Fixed,
-                "security" | "s" => ChangeType::Security,
-                _ => ChangeType::Changed,
-            }, version, false)?;
+            self.add(
+                description,
+                &match type_ {
+                    "added" | "a" => ChangeType::Added,
+                    "changed" | "c" => ChangeType::Changed,
+                    "deprecated" | "d" => ChangeType::Deprecated,
+                    "removed" | "r" => ChangeType::Removed,
+                    "fixed" | "f" => ChangeType::Fixed,
+                    "security" | "s" => ChangeType::Security,
+                    _ => ChangeType::Changed,
+                },
+                version,
+                false,
+            )?;
         }
 
         // Show the overall diff
@@ -1246,7 +1251,9 @@ All notable changes to this project will be documented in this file.
         };
 
         // Add new entry
-        changelog.add("three", &ChangeType::Added, None, false).unwrap();
+        changelog
+            .add("three", &ChangeType::Added, None, false)
+            .unwrap();
 
         // Verify result
         let content = fs::read_to_string(&changelog.path).unwrap();
@@ -1322,7 +1329,9 @@ Custom Header Line 2
         };
 
         // Add new entry that requires Added section
-        changelog.add("new feature", &ChangeType::Added, None, false).unwrap();
+        changelog
+            .add("new feature", &ChangeType::Added, None, false)
+            .unwrap();
 
         // Verify result
         let content = fs::read_to_string(&changelog.path).unwrap();

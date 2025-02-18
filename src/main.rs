@@ -1,4 +1,4 @@
-use changelog::{Changelog, ChangeType};
+use changelog::{ChangeType, Changelog};
 use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser)]
