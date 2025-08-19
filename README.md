@@ -136,3 +136,7 @@ initialize a new changelog:
 $ changelog init
 Created CHANGELOG.md
 ```
+
+## alternatives
+
+- https://github.com/miniscruff/changie

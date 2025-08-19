@@ -243,9 +243,24 @@ impl Changelog {
             let mut insert_idx = section_idx + 1;
             while insert_idx < lines.len() {
                 let line = lines[insert_idx].trim();
-                if line.is_empty() || line.starts_with('-') {
+                if line.is_empty() {
                     insert_idx += 1;
+                } else if line.starts_with('-') {
+                    // This is a list item, advance past it and any continuation lines
+                    insert_idx += 1;
+                    // Skip any continuation lines (indented lines that are part of this list item)
+                    while insert_idx < lines.len() {
+                        let next_line = &lines[insert_idx];
+                        // If the line starts with whitespace and isn't a new list item or section,
+                        // it's a continuation of the previous list item
+                        if next_line.starts_with("  ") && !next_line.trim().starts_with('-') && !next_line.trim().starts_with("### ") {
+                            insert_idx += 1;
+                        } else {
+                            break;
+                        }
+                    }
                 } else {
+                    // Not a list item or empty line, we've reached the end of the section
                     break;
                 }
             }
@@ -1446,5 +1461,51 @@ Custom Header Line 2
 [1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0
 "#;
         assert_eq!(markdown, expected);
+    }
+
+    #[test]
+    fn test_multiline_changelog_entries() {
+        set_test_github_repo(None, None);
+        let temp_dir = TempDir::new().unwrap();
+        let temp_path = temp_dir.path().join("CHANGELOG.md");
+
+        // Create initial changelog with multiline entries
+        fs::write(
+            &temp_path,
+            r#"# Changelog
+
+## Unreleased
+
+### Added
+
+- some change
+- this entry
+  has multiple lines
+- this one does not
+
+"#,
+        )
+        .unwrap();
+
+        let changelog = Changelog {
+            path: temp_path.into(),
+        };
+
+        // Add new entry - this should not break multiline entries
+        changelog
+            .add("new single line entry", &ChangeType::Added, None, false)
+            .unwrap();
+
+        // Verify result - multiline entries should be preserved
+        let content = fs::read_to_string(&changelog.path).unwrap();
+        
+        // The multiline entry should still exist with proper indentation
+        assert!(content.contains("- this entry\n  has multiple lines"));
+        assert!(content.contains("- new single line entry"));
+        
+        // Verify the structure is still intact
+        let parser = Parser::new();
+        let parsed = parser.parse(&content).unwrap();
+        assert!(parsed.contains_key("Unreleased"));
     }
 }
