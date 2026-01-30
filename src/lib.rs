@@ -1,4 +1,5 @@
 use clap::ValueEnum;
+use serde::Deserialize;
 #[derive(Clone, ValueEnum)]
 pub enum ChangeType {
     /// New features
@@ -40,6 +41,7 @@ use git2::Repository;
 use indexmap::IndexMap;
 use parse_changelog::{Parser, Release};
 use similar::{ChangeTag, TextDiff};
+use std::collections::HashSet;
 use std::fs;
 use std::io::{self, ErrorKind, Write};
 use std::path::Path;
@@ -59,6 +61,117 @@ pub fn set_test_github_repo(owner: Option<String>, repo: Option<String>) {
     TEST_GITHUB_REPO.with(|cell| {
         *cell.borrow_mut() = owner.zip(repo);
     });
+}
+
+/// Information about a PR associated with a commit
+#[derive(Debug, Clone)]
+pub struct PrCredit {
+    pub number: u64,
+    pub url: String,
+    pub author: String,
+}
+
+/// Response from GitHub API for PR lookup
+#[derive(Debug, Deserialize)]
+struct GitHubPullRequest {
+    number: u64,
+    html_url: String,
+    user: GitHubUser,
+}
+
+#[derive(Debug, Deserialize)]
+struct GitHubUser {
+    login: String,
+}
+
+/// Get a GitHub token from environment variables or `gh auth token`
+fn get_github_token() -> Option<String> {
+    // Try GH_TOKEN first (GitHub CLI convention)
+    if let Ok(token) = std::env::var("GH_TOKEN") {
+        if !token.is_empty() {
+            return Some(token);
+        }
+    }
+
+    // Try GITHUB_TOKEN (common convention)
+    if let Ok(token) = std::env::var("GITHUB_TOKEN") {
+        if !token.is_empty() {
+            return Some(token);
+        }
+    }
+
+    // Fall back to `gh auth token`
+    if let Ok(output) = Command::new("gh").args(["auth", "token"]).output() {
+        if output.status.success() {
+            let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !token.is_empty() {
+                return Some(token);
+            }
+        }
+    }
+
+    None
+}
+
+/// Look up the PR associated with a commit via GitHub API
+fn lookup_pr_for_commit(owner: &str, repo: &str, commit_sha: &str) -> Option<PrCredit> {
+    let url = format!(
+        "https://api.github.com/repos/{}/{}/commits/{}/pulls",
+        owner, repo, commit_sha
+    );
+
+    let client = reqwest::blocking::Client::new();
+    let mut request = client
+        .get(&url)
+        .header("Accept", "application/vnd.github.v3+json")
+        .header("User-Agent", "changelog-cli");
+
+    // Use GitHub token if available for authentication
+    if let Some(token) = get_github_token() {
+        request = request.header("Authorization", format!("token {}", token));
+    }
+
+    let response = request.send().ok()?;
+
+    if !response.status().is_success() {
+        return None;
+    }
+
+    let prs: Vec<GitHubPullRequest> = response.json().ok()?;
+
+    // Return the first (most recent) PR if any exist
+    prs.into_iter().next().map(|pr| PrCredit {
+        number: pr.number,
+        url: pr.html_url,
+        author: pr.user.login,
+    })
+}
+
+fn normalize_github_username(username: &str) -> String {
+    username.trim().trim_start_matches('@').to_lowercase()
+}
+
+fn normalize_excluded_users(exclude_users: &[String]) -> HashSet<String> {
+    exclude_users
+        .iter()
+        .map(|user| normalize_github_username(user))
+        .filter(|user| !user.is_empty())
+        .collect()
+}
+
+fn format_description_with_pr_credit(
+    description: &str,
+    credit: &PrCredit,
+    excluded_users: &HashSet<String>,
+) -> String {
+    if excluded_users.contains(&normalize_github_username(&credit.author)) {
+        description.to_string()
+    } else {
+        format!(
+            "{} ([#{}]({}); thanks @{})",
+            description, credit.number, credit.url, credit.author
+        )
+    }
 }
 
 fn infer_github_repo() -> Option<(String, String)> {
@@ -202,6 +315,8 @@ impl Changelog {
         description: &str,
         r#type: &ChangeType,
         version: Option<&str>,
+        commit: Option<&str>,
+        exclude_users: &[String],
         show_diff: bool,
     ) -> io::Result<()> {
         if !self.path.exists() {
@@ -210,6 +325,27 @@ impl Changelog {
                 "CHANGELOG.md does not exist. Run 'changelog init' first.",
             ));
         }
+
+        let excluded_users = normalize_excluded_users(exclude_users);
+
+        // Build the final description, potentially with PR credit
+        let final_description = if let Some(commit_sha) = commit {
+            if let Some((owner, repo)) = infer_github_repo() {
+                if let Some(credit) = lookup_pr_for_commit(&owner, &repo, commit_sha) {
+                    format_description_with_pr_credit(description, &credit, &excluded_users)
+                } else {
+                    // PR lookup failed, use description as-is
+                    eprintln!("Warning: Could not find PR for commit {}", commit_sha);
+                    description.to_string()
+                }
+            } else {
+                // Not a GitHub repo, use description as-is
+                eprintln!("Warning: Could not determine GitHub repository");
+                description.to_string()
+            }
+        } else {
+            description.to_string()
+        };
 
         let content = fs::read_to_string(&self.path)?;
         let parser = Parser::new();
@@ -253,7 +389,10 @@ impl Changelog {
                         let next_line = &lines[insert_idx];
                         // If the line starts with whitespace and isn't a new list item or section,
                         // it's a continuation of the previous list item
-                        if next_line.starts_with("  ") && !next_line.trim().starts_with('-') && !next_line.trim().starts_with("### ") {
+                        if next_line.starts_with("  ")
+                            && !next_line.trim().starts_with('-')
+                            && !next_line.trim().starts_with("### ")
+                        {
                             insert_idx += 1;
                         } else {
                             break;
@@ -269,7 +408,7 @@ impl Changelog {
                 lines.remove(insert_idx - 1);
                 insert_idx -= 1;
             }
-            lines.insert(insert_idx, format!("- {}\n", description));
+            lines.insert(insert_idx, format!("- {}\n", final_description));
         } else {
             // Section doesn't exist - create it
             // Find where to insert the new section
@@ -283,7 +422,7 @@ impl Changelog {
             // Insert the new section
             lines.insert(insert_idx, section_marker);
             lines.insert(insert_idx + 1, String::new());
-            lines.insert(insert_idx + 2, format!("- {}", description));
+            lines.insert(insert_idx + 2, format!("- {}", final_description));
             lines.insert(insert_idx + 3, String::new());
         }
 
@@ -791,6 +930,8 @@ impl Changelog {
                     _ => ChangeType::Changed,
                 },
                 version,
+                None, // No commit credit in review mode
+                &[],
                 false,
             )?;
         }
@@ -1002,6 +1143,54 @@ mod tests {
     use parse_changelog::Parser;
     use std::fs;
     use tempfile::TempDir;
+
+    #[test]
+    fn test_normalize_github_username() {
+        assert_eq!(normalize_github_username("schpet"), "schpet");
+        assert_eq!(normalize_github_username("@SchPet"), "schpet");
+        assert_eq!(normalize_github_username("  @schpetbot  "), "schpetbot");
+    }
+
+    #[test]
+    fn test_normalize_excluded_users_dedupes_and_ignores_empty() {
+        let users = vec![
+            "schpet".to_string(),
+            "@SchPet".to_string(),
+            "  ".to_string(),
+            "@schpetbot".to_string(),
+        ];
+        let normalized = normalize_excluded_users(&users);
+        assert_eq!(normalized.len(), 2);
+        assert!(normalized.contains("schpet"));
+        assert!(normalized.contains("schpetbot"));
+    }
+
+    #[test]
+    fn test_format_description_with_pr_credit_included_author() {
+        let excluded_users = HashSet::new();
+        let credit = PrCredit {
+            number: 42,
+            url: "https://github.com/owner/repo/pull/42".to_string(),
+            author: "contributor".to_string(),
+        };
+        let result = format_description_with_pr_credit("fix bug", &credit, &excluded_users);
+        assert_eq!(
+            result,
+            "fix bug ([#42](https://github.com/owner/repo/pull/42); thanks @contributor)"
+        );
+    }
+
+    #[test]
+    fn test_format_description_with_pr_credit_excluded_author() {
+        let excluded_users = normalize_excluded_users(&["@SchPet".to_string()]);
+        let credit = PrCredit {
+            number: 42,
+            url: "https://github.com/owner/repo/pull/42".to_string(),
+            author: "schpet".to_string(),
+        };
+        let result = format_description_with_pr_credit("fix bug", &credit, &excluded_users);
+        assert_eq!(result, "fix bug");
+    }
 
     #[test]
     fn test_changelog_with_github_urls() {
@@ -1267,7 +1456,7 @@ All notable changes to this project will be documented in this file.
 
         // Add new entry
         changelog
-            .add("three", &ChangeType::Added, None, false)
+            .add("three", &ChangeType::Added, None, None, &[], false)
             .unwrap();
 
         // Verify result
@@ -1345,7 +1534,7 @@ Custom Header Line 2
 
         // Add new entry that requires Added section
         changelog
-            .add("new feature", &ChangeType::Added, None, false)
+            .add("new feature", &ChangeType::Added, None, None, &[], false)
             .unwrap();
 
         // Verify result
@@ -1493,16 +1682,23 @@ Custom Header Line 2
 
         // Add new entry - this should not break multiline entries
         changelog
-            .add("new single line entry", &ChangeType::Added, None, false)
+            .add(
+                "new single line entry",
+                &ChangeType::Added,
+                None,
+                None,
+                &[],
+                false,
+            )
             .unwrap();
 
         // Verify result - multiline entries should be preserved
         let content = fs::read_to_string(&changelog.path).unwrap();
-        
+
         // The multiline entry should still exist with proper indentation
         assert!(content.contains("- this entry\n  has multiple lines"));
         assert!(content.contains("- new single line entry"));
-        
+
         // Verify the structure is still intact
         let parser = Parser::new();
         let parsed = parser.parse(&content).unwrap();

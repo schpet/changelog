@@ -60,7 +60,15 @@ $ changelog add "improved error messages" --type changed
 $ changelog add "fixed login bug" --type fixed --version 1.0.1
 + ### Fixed
 + - fixed login bug
+
+# attribute a commit's PR when adding an entry
+$ changelog add "handle nil config values" --type fixed --attribute-pr abc1234
+
+# exclude maintainer/bot users from automatic attribution
+$ changelog add "fix race in parser" --type fixed --attribute-pr def5678 --exclude-users maintainer,project-bot
 ```
+
+`--exclude-users` only applies when `--attribute-pr` is set.
 
 ### releasing versions
 
